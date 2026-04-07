@@ -503,7 +503,7 @@ export function ShopProductsPage() {
                   <th style={{ width: 56 }} />
                   <th>מוצר</th>
                   <th>קטגוריה</th>
-                  <th>מחיר</th>
+                  <th>מחיר מכירה בפועל</th>
                   <th>מעקב</th>
                 </tr>
               </thead>
@@ -601,7 +601,7 @@ export function ShopProductsPage() {
                   <div>
                     <h3 style={{ margin: 0, fontSize: "1.1rem" }}>{selected.name}</h3>
                     <p className="text-muted" style={{ margin: "0.25rem 0 0" }}>
-                      המחיר בחנות:{" "}
+                      המחיר הנמכר בחנות:{" "}
                       <strong>
                         {selected.regular_price != null ? selected.regular_price.toFixed(2) : "—"}
                         {currencySuffix(selected.shop_currency)}
