@@ -403,7 +403,7 @@ export function ShopProductsPage() {
               style={{ minWidth: 250 }}
             >
               <option value="all">כל הקטגוריות</option>
-              {categories.map((c) => (
+              {categories?.map((c) => (
                 <option key={c.name} value={c.name}>
                   {c.name} ({c.count})
                 </option>
@@ -439,7 +439,7 @@ export function ShopProductsPage() {
       </div>
 
       <datalist id="competitor-name-list">
-        {labelSuggestions.map((lab) => (
+        {labelSuggestions?.map((lab) => (
           <option key={lab} value={lab} />
         ))}
       </datalist>
@@ -457,7 +457,7 @@ export function ShopProductsPage() {
               >
                 <option value="__all__">כל הקטגוריות</option>
                 <option value="__uncategorized__">ללא קטגוריה</option>
-                {categories.map((cat) => (
+                {categories?.map((cat) => (
                   <option key={cat.name} value={cat.name}>
                     {cat.name} ({cat.count})
                   </option>
@@ -508,7 +508,7 @@ export function ShopProductsPage() {
                 </tr>
               </thead>
               <tbody>
-                {products.map((p) => (
+                {products?.map((p) => (
                   <tr
                     key={p.id}
                     onClick={() => void pickProduct(p)}
@@ -796,7 +796,7 @@ export function ShopProductsPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {competitors.map((c) => {
+                    {competitors?.map((c) => {
                       const dom = c.domain ||
                         (() => {
                           try {
@@ -972,7 +972,7 @@ export function ShopProductsPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {snaps.map((s) => (
+                  {snaps?.map((s) => (
                     <tr key={s.id}>
                       <td>{new Date(s.fetched_at).toLocaleString()}</td>
                       <td>{s.price ?? "—"}</td>
