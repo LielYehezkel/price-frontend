@@ -251,13 +251,20 @@ export type ProductOut = {
   auto_pricing_strategy: "reactive_down" | "smart_anchor";
 };
 
+type ProductListResponse = ProductOut[] | { items: ProductOut[] };
+
 export async function apiListProducts(
   token: string,
   shopId: number,
   q?: string,
 ): Promise<ProductOut[]> {
   const d = q ? `?q=${encodeURIComponent(q)}` : "";
-  return request(`/api/shops/${shopId}/products${d}`, { token, method: "GET" });
+  const data = await request<ProductListResponse>(`/api/shops/${shopId}/products${d}`, {
+    token,
+    method: "GET",
+  });
+  if (Array.isArray(data)) return data;
+  return Array.isArray(data.items) ? data.items : [];
 }
 
 export async function apiPatchProductAutoPricing(
