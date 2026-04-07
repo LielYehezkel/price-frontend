@@ -25,6 +25,15 @@ async function request<T>(
   return res.json() as Promise<T>;
 }
 
+function asArray<T>(data: unknown): T[] {
+  if (Array.isArray(data)) return data as T[];
+  if (data && typeof data === "object" && "items" in data) {
+    const items = (data as { items?: unknown }).items;
+    return Array.isArray(items) ? (items as T[]) : [];
+  }
+  return [];
+}
+
 export type UserOut = {
   id: number;
   email: string;
@@ -183,7 +192,11 @@ export async function apiListTrackedCompetitors(
   token: string,
   shopId: number,
 ): Promise<TrackedCompetitorRow[]> {
-  return request(`/api/shops/${shopId}/tracked-competitors`, { token, method: "GET" });
+  const data = await request<TrackedCompetitorRow[] | { items: TrackedCompetitorRow[] }>(
+    `/api/shops/${shopId}/tracked-competitors`,
+    { token, method: "GET" },
+  );
+  return asArray<TrackedCompetitorRow>(data);
 }
 
 export async function apiPatchTrackedCompetitor(
@@ -322,7 +335,11 @@ export async function apiListProducts(
 }
 
 export async function apiProductCategories(token: string, shopId: number): Promise<ProductCategoryRow[]> {
-  return request(`/api/shops/${shopId}/products/categories`, { token, method: "GET" });
+  const data = await request<ProductCategoryRow[] | { items: ProductCategoryRow[] }>(
+    `/api/shops/${shopId}/products/categories`,
+    { token, method: "GET" },
+  );
+  return asArray<ProductCategoryRow>(data);
 }
 
 export async function apiCompetitorIntelligence(
@@ -361,7 +378,15 @@ export async function apiCompetitorLabels(
   token: string,
   shopId: number,
 ): Promise<{ labels: string[] }> {
-  return request(`/api/shops/${shopId}/competitor-labels`, { token, method: "GET" });
+  const data = await request<
+    { labels?: string[] } | string[] | { items: string[] }
+  >(`/api/shops/${shopId}/competitor-labels`, { token, method: "GET" });
+  if (Array.isArray(data)) return { labels: data };
+  if (data && typeof data === "object" && "labels" in data) {
+    const labels = (data as { labels?: unknown }).labels;
+    if (Array.isArray(labels)) return { labels: labels as string[] };
+  }
+  return { labels: asArray<string>(data) };
 }
 
 export type CompetitorOut = {
@@ -381,10 +406,11 @@ export async function apiListCompetitors(
   shopId: number,
   productId: number,
 ): Promise<CompetitorOut[]> {
-  return request(`/api/shops/${shopId}/products/${productId}/competitors`, {
+  const data = await request<CompetitorOut[] | { items: CompetitorOut[] }>(`/api/shops/${shopId}/products/${productId}/competitors`, {
     token,
     method: "GET",
   });
+  return asArray<CompetitorOut>(data);
 }
 
 export async function apiAddCompetitor(
@@ -445,10 +471,11 @@ export async function apiSnapshots(
   shopId: number,
   competitorId: number,
 ): Promise<SnapshotOut[]> {
-  return request(`/api/shops/${shopId}/competitors/${competitorId}/snapshots`, {
+  const data = await request<SnapshotOut[] | { items: SnapshotOut[] }>(`/api/shops/${shopId}/competitors/${competitorId}/snapshots`, {
     token,
     method: "GET",
   });
+  return asArray<SnapshotOut>(data);
 }
 
 export type AlertOut = {

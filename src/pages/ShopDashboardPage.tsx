@@ -605,7 +605,7 @@ export function ShopDashboardPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {intel.competitors.slice(0, 12).map((r) => (
+                  {intel.competitors.slice(0, 12)?.map((r) => (
                     <tr key={`${r.tracked_competitor_id ?? "d"}-${r.domain}`}>
                       <td>
                         <strong>{r.competitor_name}</strong>
@@ -644,12 +644,12 @@ export function ShopDashboardPage() {
             <li className="dash-v2-rec">
               <p className="dash-v2-rec__text">טוען…</p>
             </li>
-          ) : recs.length === 0 ? (
+          ) : recs?.length === 0 ? (
             <li className="dash-v2-rec">
               <p className="dash-v2-rec__text">אין המלצות חדשות כרגע.</p>
             </li>
           ) : (
-            recs.map((r) => (
+            recs?.map((r) => (
               <li key={r.id} className="dash-v2-rec">
                 <p className="dash-v2-rec__text">{r.text}</p>
                 <button
@@ -677,10 +677,10 @@ export function ShopDashboardPage() {
           </Link>
         </div>
         <div className="dash-v2-alerts">
-          {alertFeed.length === 0 ? (
+          {alertFeed?.length === 0 ? (
             <p className="dash-v2-alerts__empty">אין התראות שלא נקראו — מצוין.</p>
           ) : (
-            alertFeed.map((a) => (
+            alertFeed?.map((a) => (
               <div key={a.id} className={`dash-v2-alert dash-v2-alert--${a.severity === "hot" ? "hot" : "info"}`}>
                 <div className="dash-v2-alert__top">
                   <span className="dash-v2-alert__kind">{alertKindLabel[a.kind] ?? a.kind}</span>
