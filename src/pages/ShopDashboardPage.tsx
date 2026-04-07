@@ -2,6 +2,7 @@ import { useCallback, useEffect, useId, useMemo, useState, type ReactNode } from
 import { Link, useParams } from "react-router-dom";
 import {
   apiAccountHealth,
+  apiCompetitorIntelligence,
   apiDashboardStats,
   apiDismissRecommendations,
   apiDismissSetupChecklist,
@@ -13,6 +14,7 @@ import {
   type AccountHealth,
   type AlertOut,
   type DashboardStats,
+  type CompetitorIntelligenceOut,
   type PriceSeriesPoint,
   type SetupChecklistResponse,
 } from "../api/apiSaaS";
@@ -245,24 +247,27 @@ export function ShopDashboardPage() {
   const [err, setErr] = useState<string | null>(null);
   const [checklist, setChecklist] = useState<SetupChecklistResponse | null>(null);
   const [health, setHealth] = useState<AccountHealth | null>(null);
+  const [intel, setIntel] = useState<CompetitorIntelligenceOut | null>(null);
   const [weeklyBusy, setWeeklyBusy] = useState(false);
   const [dismissBusy, setDismissBusy] = useState(false);
   const [recBusy, setRecBusy] = useState<string | null>(null);
 
   const loadData = useCallback(async () => {
     if (!token || Number.isNaN(sid)) return;
-    const [d, a, s, cl, h] = await Promise.all([
+    const [d, a, s, cl, h, ci] = await Promise.all([
       apiDashboardStats(token, sid),
       apiListAlerts(token, sid, true),
       apiPriceSeries(token, sid, undefined, undefined, "hourly_min"),
       apiSetupChecklist(token, sid),
       apiAccountHealth(token, sid),
+      apiCompetitorIntelligence(token, sid, 30),
     ]);
     setStats(d);
     setAlerts(a);
     setChart(s.points.slice(-96));
     setChecklist(cl);
     setHealth(h);
+    setIntel(ci);
   }, [token, sid]);
 
   useEffect(() => {
@@ -555,6 +560,79 @@ export function ShopDashboardPage() {
           </aside>
         </section>
       )}
+
+      <section className="dash-v2-section">
+        <div className="dash-v2-section-head dash-v2-section-head--row">
+          <div>
+            <h2 className="dash-v2-section-title">מודיעין מתחרים</h2>
+            <p className="dash-v2-section-sub">
+              מצב נוכחי מול המתחרים + שינויי מחיר ב־{intel?.period_days ?? 30} הימים האחרונים.
+            </p>
+          </div>
+        </div>
+        {!intel ? (
+          <p className="text-muted">טוען מודיעין…</p>
+        ) : (
+          <>
+            <div className="dash-v2-intel-kpis">
+              <div className="dash-v2-intel-kpi">
+                <span>אנחנו זולים</span>
+                <strong className="tabular-nums">{intel.current_overall.cheaper}</strong>
+              </div>
+              <div className="dash-v2-intel-kpi">
+                <span>אנחנו יקרים</span>
+                <strong className="tabular-nums">{intel.current_overall.expensive}</strong>
+              </div>
+              <div className="dash-v2-intel-kpi">
+                <span>שוויון מחיר</span>
+                <strong className="tabular-nums">{intel.current_overall.tie}</strong>
+              </div>
+              <div className="dash-v2-intel-kpi">
+                <span>שינויי מחיר ({intel.period_days} ימים)</span>
+                <strong className="tabular-nums">{intel.total_price_changes_in_period}</strong>
+              </div>
+            </div>
+            <div className="table-wrap">
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>מתחרה</th>
+                    <th>זולים</th>
+                    <th>יקרים</th>
+                    <th>שווים</th>
+                    <th>שינויי מחיר</th>
+                    <th>שינוי אחרון</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {intel.competitors.slice(0, 12).map((r) => (
+                    <tr key={`${r.tracked_competitor_id ?? "d"}-${r.domain}`}>
+                      <td>
+                        <strong>{r.competitor_name}</strong>
+                        <div className="text-muted" style={{ fontSize: "0.78rem" }}>
+                          {r.domain} · {r.links_count} קישורים
+                        </div>
+                      </td>
+                      <td className="tabular-nums">{r.current_cheaper}</td>
+                      <td className="tabular-nums">{r.current_expensive}</td>
+                      <td className="tabular-nums">{r.current_tie}</td>
+                      <td className="tabular-nums">{r.price_changes_in_period}</td>
+                      <td className="tabular-nums">
+                        {r.last_price_change_at
+                          ? new Date(r.last_price_change_at).toLocaleString("he-IL", {
+                              dateStyle: "short",
+                              timeStyle: "short",
+                            })
+                          : "—"}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )}
+      </section>
 
       <section className="dash-v2-section">
         <div className="dash-v2-section-head">

@@ -20,6 +20,7 @@ import { ShopAnalyticsPage } from "./pages/ShopAnalyticsPage";
 import { AdminOverviewPage } from "./pages/AdminOverviewPage";
 import { AdminScanEnginePage } from "./pages/AdminScanEnginePage";
 import { AdminOperationsLogPage } from "./pages/AdminOperationsLogPage";
+import { AdminSystemConfigPage } from "./pages/AdminSystemConfigPage";
 
 function Protected({ children }: { children: React.ReactNode }) {
   const { token, loading } = useAuth();
@@ -69,6 +70,7 @@ export default function App() {
         <Route index element={<AdminOverviewPage />} />
         <Route path="scan-engine" element={<AdminScanEnginePage />} />
         <Route path="operations" element={<AdminOperationsLogPage />} />
+        <Route path="system" element={<AdminSystemConfigPage />} />
         <Route path="domains" element={<AdminDomainsPage />} />
         <Route path="users" element={<AdminUsersPage />} />
         <Route path="tool" element={<PriceToolPage />} />

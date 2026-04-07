@@ -239,6 +239,8 @@ export type ProductOut = {
   sku: string | null;
   permalink: string | null;
   image_url: string | null;
+  category_name?: string | null;
+  category_path?: string | null;
   regular_price: number | null;
   competitors_count: number;
   shop_currency: string | null;
@@ -251,13 +253,63 @@ export type ProductOut = {
   auto_pricing_strategy: "reactive_down" | "smart_anchor";
 };
 
+export type ProductCategoryRow = {
+  name: string;
+  count: number;
+};
+
+export type CompetitorIntelRow = {
+  tracked_competitor_id: number | null;
+  competitor_name: string;
+  domain: string;
+  links_count: number;
+  current_cheaper: number;
+  current_expensive: number;
+  current_tie: number;
+  current_compared: number;
+  price_changes_in_period: number;
+  last_price_change_at: string | null;
+};
+
+export type CompetitorIntelligenceOut = {
+  period_days: number;
+  current_overall: {
+    cheaper: number;
+    expensive: number;
+    tie: number;
+    compared: number;
+  };
+  total_price_changes_in_period: number;
+  competitors: CompetitorIntelRow[];
+};
+
 export async function apiListProducts(
   token: string,
   shopId: number,
-  q?: string,
-): Promise<ProductOut[]> {
-  const d = q ? `?q=${encodeURIComponent(q)}` : "";
+  opts?: { q?: string; category?: string; skip?: number; limit?: number },
+): Promise<{ items: ProductOut[]; total: number; skip: number; limit: number }> {
+  const p = new URLSearchParams();
+  if (opts?.q) p.set("q", opts.q);
+  if (opts?.category) p.set("category", opts.category);
+  if (opts?.skip != null) p.set("skip", String(opts.skip));
+  if (opts?.limit != null) p.set("limit", String(opts.limit));
+  const d = p.toString() ? `?${p.toString()}` : "";
   return request(`/api/shops/${shopId}/products${d}`, { token, method: "GET" });
+}
+
+export async function apiProductCategories(token: string, shopId: number): Promise<ProductCategoryRow[]> {
+  return request(`/api/shops/${shopId}/products/categories`, { token, method: "GET" });
+}
+
+export async function apiCompetitorIntelligence(
+  token: string,
+  shopId: number,
+  days: number = 30,
+): Promise<CompetitorIntelligenceOut> {
+  return request(`/api/shops/${shopId}/competitors/intelligence?days=${days}`, {
+    token,
+    method: "GET",
+  });
 }
 
 export async function apiPatchProductAutoPricing(
@@ -625,8 +677,15 @@ export function getPluginDownloadUrl(): string {
   return `${base()}/api/plugin/download-zip`;
 }
 
-export async function apiDownloadWpPluginZip(token: string, shopId: number): Promise<Blob> {
-  const res = await fetch(`${base()}/api/shops/${shopId}/wordpress-plugin.zip`, {
+export async function apiDownloadWpPluginZip(
+  token: string,
+  shopId: number,
+  opts?: { apiBase?: string | null },
+): Promise<Blob> {
+  const q = new URLSearchParams();
+  if (opts?.apiBase) q.set("api_base", opts.apiBase);
+  const suffix = q.toString() ? `?${q}` : "";
+  const res = await fetch(`${base()}/api/shops/${shopId}/wordpress-plugin.zip${suffix}`, {
     headers: { Authorization: `Bearer ${token}` },
   });
   if (!res.ok) {
@@ -642,8 +701,15 @@ export async function apiDownloadWpPluginZip(token: string, shopId: number): Pro
   return res.blob();
 }
 
-export async function apiDownloadCompetitorsTemplate(token: string, shopId: number): Promise<Blob> {
-  const res = await fetch(`${base()}/api/shops/${shopId}/competitors-import-template.xlsx`, {
+export async function apiDownloadCompetitorsTemplate(
+  token: string,
+  shopId: number,
+  category?: string | null,
+): Promise<Blob> {
+  const q = new URLSearchParams();
+  if (category) q.set("category", category);
+  const suffix = q.toString() ? `?${q}` : "";
+  const res = await fetch(`${base()}/api/shops/${shopId}/competitors-import-template.xlsx${suffix}`, {
     headers: { Authorization: `Bearer ${token}` },
   });
   if (!res.ok) throw new Error(await res.text());
@@ -936,6 +1002,12 @@ export type OperationalLogPage = {
   offset: number;
 };
 
+export type AdminSystemConfig = {
+  backend_mode: "local" | "custom" | string;
+  backend_api_base: string | null;
+  updated_at: string;
+};
+
 export async function apiAdminOperationsLog(
   token: string,
   opts?: { limit?: number; offset?: number; level?: string | null; code_prefix?: string | null },
@@ -947,4 +1019,19 @@ export async function apiAdminOperationsLog(
   if (opts?.code_prefix) q.set("code_prefix", opts.code_prefix);
   const suffix = q.toString() ? `?${q}` : "";
   return request(`/api/admin/operations-log${suffix}`, { token, method: "GET" });
+}
+
+export async function apiAdminGetSystemConfig(token: string): Promise<AdminSystemConfig> {
+  return request("/api/admin/system/config", { token, method: "GET" });
+}
+
+export async function apiAdminPatchSystemConfig(
+  token: string,
+  body: Partial<{ backend_mode: "local" | "custom"; backend_api_base: string | null }>,
+): Promise<AdminSystemConfig> {
+  return request("/api/admin/system/config", {
+    token,
+    method: "PATCH",
+    body: JSON.stringify(body),
+  });
 }

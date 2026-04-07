@@ -21,6 +21,7 @@ export function ShopSetupPage() {
   const sid = Number(shopId);
   const [step, setStep] = useState(0);
   const [siteUrl, setSiteUrl] = useState("");
+  const [apiBaseForPlugin, setApiBaseForPlugin] = useState("");
   const [shop, setShop] = useState<ShopOut | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
@@ -43,7 +44,10 @@ export function ShopSetupPage() {
     if (!token || Number.isNaN(sid)) return;
     setErr(null);
     try {
-      const blob = await apiDownloadWpPluginZip(token, sid);
+      const apiBase = apiBaseForPlugin.trim();
+      const blob = await apiDownloadWpPluginZip(token, sid, {
+        apiBase: apiBase ? apiBase : null,
+      });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
@@ -115,6 +119,20 @@ export function ShopSetupPage() {
               onChange={(e) => setSiteUrl(e.target.value)}
             />
           </div>
+          <div className="field">
+            <label>כתובת API ציבורית לתוסף (חשוב בפרודקשן)</label>
+            <input
+              className="input"
+              type="url"
+              placeholder="https://api.your-domain.com"
+              value={apiBaseForPlugin}
+              onChange={(e) => setApiBaseForPlugin(e.target.value)}
+            />
+            <small className="text-muted">
+              אם משאירים ריק, המערכת תשתמש בברירת המחדל של השרת. אם קיבלתם שגיאת 127.0.0.1 בתוסף —
+              מלאו כאן דומיין API ציבורי והורידו ZIP חדש.
+            </small>
+          </div>
           <div className="flex-row" style={{ marginTop: "1rem" }}>
             <button type="button" className="btn" onClick={() => setStep(1)}>
               המשך
@@ -127,8 +145,8 @@ export function ShopSetupPage() {
         <div className="card">
           <h2 style={{ marginTop: 0 }}>שלב 2 — הורדת התוסף</h2>
           <p className="text-muted" style={{ marginTop: 0 }}>
-            הורידו את קובץ ה־ZIP — בכל הורדה נוצר טוקן הקמה חדש (תוקף שבוע). התקינו את התוסף באתר
-            הוורדפרס שלכם.
+            הורידו את קובץ ה־ZIP והתקינו אותו פעם אחת. התוסף נבנה עם טוקן חיבור קבוע לחנות, כך שלא
+            צריך לרענן או להוריד גרסה חדשה בכל פעם.
           </p>
           <div className="flex-row" style={{ gap: "0.75rem", flexWrap: "wrap" }}>
             <button type="button" className="btn" onClick={() => void onDownloadPlugin()}>
