@@ -9,12 +9,14 @@ import {
   apiImportCompetitorsExcel,
   apiListCompetitors,
   apiListTrackedCompetitors,
+  apiProductCategories,
   apiReportCompetitorPriceIssue,
   apiListProducts,
   apiPatchProductAutoPricing,
   apiSnapshots,
   apiSyncShop,
   type CompetitorOut,
+  type ProductCategoryRow,
   type ProductOut,
   type TrackedCompetitorRow,
 } from "../api/apiSaaS";
@@ -44,6 +46,12 @@ export function ShopProductsPage() {
   const sid = Number(shopId);
   const [q, setQ] = useState("");
   const [products, setProducts] = useState<ProductOut[]>([]);
+  const [categories, setCategories] = useState<ProductCategoryRow[]>([]);
+  const [templateCategory, setTemplateCategory] = useState<string>("all");
+  const [activeCategory, setActiveCategory] = useState<string>("__all__");
+  const [skip, setSkip] = useState(0);
+  const [limit, setLimit] = useState(80);
+  const [totalProducts, setTotalProducts] = useState(0);
   const [selected, setSelected] = useState<ProductOut | null>(null);
   const [competitors, setCompetitors] = useState<CompetitorOut[]>([]);
   const [labelSuggestions, setLabelSuggestions] = useState<string[]>([]);
@@ -77,16 +85,23 @@ export function ShopProductsPage() {
     return trackedCompetitors.find((t) => t.domain === domainPreview);
   }, [domainPreview, trackedCompetitors]);
 
-  async function loadProducts(): Promise<ProductOut[]> {
+  async function loadProducts(nextSkip: number = skip): Promise<ProductOut[]> {
     if (!token || Number.isNaN(sid)) return [];
-    const list = await apiListProducts(token, sid, q || undefined);
-    setProducts(list);
-    return list;
+    const page = await apiListProducts(token, sid, {
+      q: q || undefined,
+      category: activeCategory,
+      skip: nextSkip,
+      limit,
+    });
+    setProducts(page.items);
+    setTotalProducts(page.total);
+    setSkip(page.skip);
+    return page.items;
   }
 
   useEffect(() => {
-    void loadProducts();
-  }, [token, sid, q]);
+    void loadProducts(0);
+  }, [token, sid, q, activeCategory, limit]);
 
   useEffect(() => {
     if (!token || Number.isNaN(sid)) return;
@@ -96,6 +111,15 @@ export function ShopProductsPage() {
     void apiListTrackedCompetitors(token, sid)
       .then((r) => setTrackedCompetitors(r))
       .catch(() => setTrackedCompetitors([]));
+  }, [token, sid]);
+
+  useEffect(() => {
+    if (!token || Number.isNaN(sid)) return;
+    void apiProductCategories(token, sid)
+      .then((r) => {
+        setCategories(r);
+      })
+      .catch(() => setCategories([]));
   }, [token, sid]);
 
   useEffect(() => {
@@ -205,15 +229,18 @@ export function ShopProductsPage() {
     if (!token || Number.isNaN(sid)) return;
     setErr(null);
     try {
-      const blob = await apiDownloadCompetitorsTemplate(token, sid);
+      const useCategory = templateCategory !== "all" ? templateCategory : null;
+      const blob = await apiDownloadCompetitorsTemplate(token, sid, useCategory);
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `competitors-import-template-${sid}.xlsx`;
+      a.download = `competitors-import-template-${sid}${useCategory ? `-${useCategory}` : "-all"}.xlsx`;
       a.click();
       URL.revokeObjectURL(url);
       setMsg(
-        "תבנית הורדה — עמודות: product_id, competitor_url (חובה לשורות עם קישור), competitor_label (אופציונלי).",
+        useCategory
+          ? `תבנית קטגוריה "${useCategory}" ירדה בהצלחה כולל גיליון הוראות.`
+          : "תבנית מלאה ירדה בהצלחה כולל גיליון הוראות.",
       );
     } catch (ex) {
       setErr(ex instanceof Error ? ex.message : "שגיאה");
@@ -339,6 +366,8 @@ export function ShopProductsPage() {
   }
 
   const cur = selected?.shop_currency;
+  const totalPages = Math.max(1, Math.ceil(totalProducts / limit));
+  const currentPage = Math.floor(skip / limit) + 1;
 
   return (
     <>
@@ -355,22 +384,37 @@ export function ShopProductsPage() {
           <button type="button" className="btn secondary sm" onClick={() => void onSync()}>
             סנכרון WooCommerce
           </button>
-          <input
-            className="input"
-            placeholder="חיפוש לפי שם מוצר…"
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            style={{ maxWidth: 280 }}
-          />
         </div>
       </div>
 
       <div className="card mt-2">
         <h3 style={{ margin: "0 0 0.5rem", fontSize: "1rem" }}>ייבוא מתחרים מ־Excel</h3>
         <p className="text-muted" style={{ marginTop: 0, fontSize: "0.9rem" }}>
-          הורידו תבנית עם כל המוצרים, מלאו קישור ושם מתחרה לכל שורה, והעלו חזרה. שורות בלי קישור
-          מתחרה יידלגו.
+          אפשר להוריד תבנית לכל החנות או לקטגוריה אחת, למלא רק את עמודות המתחרים, ולהעלות חזרה.
+          שורות בלי קישור מתחרה יידלגו.
         </p>
+        <div className="products-template-toolbar">
+          <label className="field" style={{ margin: 0 }}>
+            <span>קטגוריה לתבנית</span>
+            <select
+              className="input"
+              value={templateCategory}
+              onChange={(e) => setTemplateCategory(e.target.value)}
+              style={{ minWidth: 250 }}
+            >
+              <option value="all">כל הקטגוריות</option>
+              {categories.map((c) => (
+                <option key={c.name} value={c.name}>
+                  {c.name} ({c.count})
+                </option>
+              ))}
+            </select>
+          </label>
+          <div className="products-template-help">
+            <strong>איך ממלאים נכון:</strong> לא משנים `product_id`; ממלאים `competitor_url`; `competitor_label`
+            אופציונלי; אפשר כמה שורות לאותו מוצר; מעלים בחזרה.
+          </div>
+        </div>
         <div className="flex-row" style={{ gap: "0.75rem", flexWrap: "wrap", alignItems: "center" }}>
           <button
             type="button"
@@ -402,13 +446,63 @@ export function ShopProductsPage() {
 
       <div className="products-split mt-2">
         <div className="card">
-          <h3 style={{ margin: "0 0 1rem", fontSize: "1rem" }}>מוצרים</h3>
-          <div className="table-wrap">
+          <h3 style={{ margin: "0 0 0.75rem", fontSize: "1rem" }}>מוצרים</h3>
+          <div className="products-header-controls">
+            <label className="field" style={{ margin: 0 }}>
+              <span>קטגוריה</span>
+              <select
+                className="input"
+                value={activeCategory}
+                onChange={(e) => setActiveCategory(e.target.value)}
+              >
+                <option value="__all__">כל הקטגוריות</option>
+                <option value="__uncategorized__">ללא קטגוריה</option>
+                {categories.map((cat) => (
+                  <option key={cat.name} value={cat.name}>
+                    {cat.name} ({cat.count})
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="field" style={{ margin: 0 }}>
+              <span>חיפוש מוצר</span>
+              <input
+                className="input"
+                placeholder="שם / SKU…"
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+              />
+            </label>
+          </div>
+          <div className="products-toolbar-row">
+            <span className="text-muted">
+              מציגים {products.length} מתוך {totalProducts} מוצרים
+              {activeCategory !== "__all__" && ` · קטגוריה: ${activeCategory === "__uncategorized__" ? "ללא קטגוריה" : activeCategory}`}
+            </span>
+            <div className="flex-row" style={{ gap: "0.5rem" }}>
+              <label className="text-muted" style={{ fontSize: "0.85rem" }}>
+                לעמוד:
+              </label>
+              <select
+                className="input"
+                style={{ width: 90, padding: "0.35rem 0.5rem" }}
+                value={String(limit)}
+                onChange={(e) => setLimit(Number(e.target.value) || 80)}
+              >
+                <option value="40">40</option>
+                <option value="80">80</option>
+                <option value="120">120</option>
+                <option value="200">200</option>
+              </select>
+            </div>
+          </div>
+          <div className="table-wrap products-table-wrap">
             <table className="data-table">
               <thead>
                 <tr>
                   <th style={{ width: 56 }} />
                   <th>מוצר</th>
+                  <th>קטגוריה</th>
                   <th>מחיר</th>
                   <th>מעקב</th>
                 </tr>
@@ -426,12 +520,7 @@ export function ShopProductsPage() {
                   >
                     <td>
                       {p.image_url ? (
-                        <img
-                          className="product-thumb"
-                          src={p.image_url}
-                          alt=""
-                          loading="lazy"
-                        />
+                        <img className="product-thumb" src={p.image_url} alt="" loading="lazy" />
                       ) : (
                         <div className="product-thumb product-thumb--placeholder" aria-hidden />
                       )}
@@ -443,6 +532,9 @@ export function ShopProductsPage() {
                           SKU: {p.sku}
                         </div>
                       )}
+                    </td>
+                    <td>
+                      <span className="text-muted">{p.category_name || "—"}</span>
                     </td>
                     <td>
                       {p.regular_price != null ? p.regular_price.toFixed(2) : "—"}
@@ -464,6 +556,25 @@ export function ShopProductsPage() {
                 ))}
               </tbody>
             </table>
+          </div>
+          <div className="products-pager">
+            <button
+              type="button"
+              className="btn secondary sm"
+              disabled={skip <= 0}
+              onClick={() => void loadProducts(Math.max(0, skip - limit))}
+            >
+              הקודם
+            </button>
+            <span className="text-muted">עמוד {currentPage} / {totalPages}</span>
+            <button
+              type="button"
+              className="btn secondary sm"
+              disabled={skip + limit >= totalProducts}
+              onClick={() => void loadProducts(skip + limit)}
+            >
+              הבא
+            </button>
           </div>
           {products.length === 0 && (
             <p className="text-muted">אין מוצרים — הריצו סנכרון מ־WooCommerce.</p>

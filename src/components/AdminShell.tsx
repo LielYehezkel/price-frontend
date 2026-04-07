@@ -17,6 +17,7 @@ export function AdminShell() {
             מנוע סריקות
           </NavLink>
           <NavLink to="/admin/operations">יומן תפעול</NavLink>
+          <NavLink to="/admin/system">שרת ותקשורת</NavLink>
           <div className="sidebar-nav-section">ניהול</div>
           <NavLink to="/admin/domains">בדיקת דומיינים</NavLink>
           <NavLink to="/admin/users">ניהול משתמשים</NavLink>
@@ -36,6 +37,7 @@ export function AdminShell() {
           </NavLink>
           <NavLink to="/admin/scan-engine">סריקות</NavLink>
           <NavLink to="/admin/operations">לוג</NavLink>
+          <NavLink to="/admin/system">שרת</NavLink>
           <NavLink to="/admin/domains">דומיינים</NavLink>
           <NavLink to="/admin/users">משתמשים</NavLink>
           <NavLink to="/admin/tool">כלי מחיר</NavLink>
