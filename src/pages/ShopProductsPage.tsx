@@ -14,6 +14,7 @@ import {
   apiListProducts,
   apiPatchProductAutoPricing,
   apiSnapshots,
+  apiRefreshShopPrices,
   apiSyncShop,
   type CompetitorOut,
   type ProductCategoryRow,
@@ -78,6 +79,7 @@ export function ShopProductsPage() {
   const [apActVal, setApActVal] = useState("");
   const [apStrategy, setApStrategy] = useState<"reactive_down" | "smart_anchor">("reactive_down");
   const [apSaving, setApSaving] = useState(false);
+  const [priceRefreshing, setPriceRefreshing] = useState(false);
 
   const domainPreview = useMemo(() => parseDomainFromInput(url), [url]);
   const matchedTracked = useMemo(() => {
@@ -212,16 +214,39 @@ export function ShopProductsPage() {
   async function onSync() {
     if (!token) return;
     setErr(null);
+    setMsg(null);
     try {
       await apiSyncShop(token, sid);
       const list = await loadProducts();
-      setMsg("סנכרון הושלם");
+      setMsg("סנכרון הושלם — קטלוג עודכן מול WooCommerce.");
       if (selected) {
         const upd = list.find((x) => x.id === selected.id);
         if (upd) setSelected(upd);
       }
     } catch (ex) {
       setErr(ex instanceof Error ? ex.message : "שגיאה");
+    }
+  }
+
+  async function onRefreshPricesOnly() {
+    if (!token || Number.isNaN(sid)) return;
+    setErr(null);
+    setMsg(null);
+    setPriceRefreshing(true);
+    try {
+      const r = await apiRefreshShopPrices(token, sid);
+      const list = await loadProducts();
+      setMsg(
+        `רענון מחירים הושלם: עודכנו ${r.updated} מוצרים מתוך ${r.checked}${r.missing_in_woo ? ` (${r.missing_in_woo} לא נמצאו ב־Woo — ייתכן שמחקו)` : ""}.`,
+      );
+      if (selected) {
+        const upd = list.find((x) => x.id === selected.id);
+        if (upd) setSelected(upd);
+      }
+    } catch (ex) {
+      setErr(ex instanceof Error ? ex.message : "שגיאה");
+    } finally {
+      setPriceRefreshing(false);
     }
   }
 
@@ -380,9 +405,18 @@ export function ShopProductsPage() {
       {msg && <p className="text-muted">{msg}</p>}
 
       <div className="flex-between">
-        <div className="flex-row">
+        <div className="flex-row" style={{ gap: "0.5rem", flexWrap: "wrap", alignItems: "center" }}>
           <button type="button" className="btn secondary sm" onClick={() => void onSync()}>
-            סנכרון WooCommerce
+            סנכרון מלא (קטלוג)
+          </button>
+          <button
+            type="button"
+            className="btn sm"
+            disabled={priceRefreshing}
+            onClick={() => void onRefreshPricesOnly()}
+            title="מעדכן רק מחירי מכירה למוצרים שכבר במערכת — בלי ייבוא קטלוג מחדש"
+          >
+            {priceRefreshing ? "מרענן מחירים…" : "רענון מחירים בלבד"}
           </button>
         </div>
       </div>

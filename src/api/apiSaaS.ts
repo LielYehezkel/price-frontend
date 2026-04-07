@@ -246,6 +246,13 @@ export async function apiSyncShop(token: string, shopId: number): Promise<{ sync
   return request(`/api/shops/${shopId}/sync`, { token, method: "POST" });
 }
 
+export async function apiRefreshShopPrices(
+  token: string,
+  shopId: number,
+): Promise<{ checked: number; updated: number; missing_in_woo: number }> {
+  return request(`/api/shops/${shopId}/refresh-prices`, { token, method: "POST" });
+}
+
 export type ProductOut = {
   id: number;
   name: string;
