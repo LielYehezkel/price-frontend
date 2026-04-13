@@ -2927,3 +2927,185 @@ textarea.code-area {
   margin-top: 1.25rem;
 }
 
+.btn.btn-secondary {
+  background: var(--surface-2);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+.btn.btn-secondary:hover {
+  background: #f1f5f9;
+}
+
+/* WhatsApp onboarding experience */
+.wa-onboard {
+  max-width: 980px;
+  margin: 0 auto;
+  display: grid;
+  gap: 1rem;
+}
+
+.wa-onboard-hero {
+  background: linear-gradient(120deg, #312e81 0%, #4f46e5 45%, #6366f1 100%);
+  color: #fff;
+  border-radius: calc(var(--radius) + 4px);
+  padding: 1.35rem 1.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 1rem;
+  box-shadow: var(--shadow-lg);
+}
+
+.wa-onboard-hero h1 {
+  margin: 0;
+  font-size: 1.45rem;
+}
+
+.wa-onboard-hero p {
+  margin: 0.45rem 0 0;
+  opacity: 0.95;
+}
+
+.wa-onboard-progress {
+  min-width: 220px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: var(--radius-sm);
+  padding: 0.75rem 0.85rem;
+}
+
+.wa-onboard-progress__label {
+  font-size: 0.78rem;
+  opacity: 0.9;
+}
+
+.wa-onboard-progress__value {
+  font-size: 1.45rem;
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.wa-onboard-progress__bar {
+  margin-top: 0.45rem;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.2);
+  overflow: hidden;
+}
+
+.wa-onboard-progress__bar > span {
+  display: block;
+  height: 100%;
+  background: #fff;
+}
+
+.wa-onboard-progress__sub {
+  margin-top: 0.45rem;
+  font-size: 0.8rem;
+  opacity: 0.95;
+}
+
+.wa-onboard-alert {
+  border-radius: var(--radius-sm);
+  padding: 0.75rem 0.9rem;
+  border: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.wa-onboard-alert--danger {
+  border-color: rgba(220, 38, 38, 0.3);
+  background: var(--danger-soft);
+  color: #991b1b;
+}
+
+.wa-onboard-alert--info {
+  border-color: rgba(79, 70, 229, 0.25);
+  background: rgba(79, 70, 229, 0.08);
+  color: #312e81;
+}
+
+.wa-step {
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  padding: 1rem 1.1rem;
+  box-shadow: var(--shadow);
+  opacity: 0.9;
+}
+
+.wa-step.is-active {
+  border-color: rgba(79, 70, 229, 0.35);
+  box-shadow: 0 8px 28px rgba(79, 70, 229, 0.12);
+  opacity: 1;
+}
+
+.wa-step > header {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.wa-step > header h3 {
+  margin: 0;
+  font-size: 1.04rem;
+}
+
+.wa-step > header p {
+  margin: 0.2rem 0 0;
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+.wa-step__badge {
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.wa-step__body {
+  margin-top: 0.85rem;
+  display: grid;
+  gap: 0.6rem;
+}
+
+.wa-copy-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.5rem;
+  align-items: center;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  border-radius: var(--radius-sm);
+  padding: 0.55rem;
+}
+
+.wa-copy-row code {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.wa-onboard-success {
+  border-radius: var(--radius);
+  border: 1px solid rgba(5, 150, 105, 0.35);
+  background: var(--success-soft);
+  color: #065f46;
+  padding: 1rem 1.1rem;
+}
+
+.wa-onboard-success h3 {
+  margin: 0;
+}
+
+.wa-onboard-success p {
+  margin: 0.4rem 0 0.8rem;
+}
+

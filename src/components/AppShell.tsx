@@ -11,6 +11,7 @@ const titles: Record<string, string> = {
   setup: "הקמת חנות",
   analytics: "השפעה ומכירות",
   assistant: "עוזר AI",
+  whatsapp: "חיבור WhatsApp",
 };
 
 export function AppShell() {
@@ -40,6 +41,7 @@ export function AppShell() {
           <NavLink to={`${base}/settings`}>הגדרות</NavLink>
           <NavLink to={`${base}/setup`}>הקמת חנות</NavLink>
           <NavLink to={`${base}/assistant`}>עוזר AI</NavLink>
+          <NavLink to={`${base}/assistant/whatsapp`}>חיבור WhatsApp</NavLink>
           <NavLink to="/shops">כל החנויות</NavLink>
           {user?.is_admin && <NavLink to="/admin">פאנל ניהול</NavLink>}
         </nav>
@@ -59,6 +61,7 @@ export function AppShell() {
           <NavLink to={`${base}/settings`}>הגדרות</NavLink>
           <NavLink to={`${base}/setup`}>הקמה</NavLink>
           <NavLink to={`${base}/assistant`}>עוזר AI</NavLink>
+          <NavLink to={`${base}/assistant/whatsapp`}>WhatsApp</NavLink>
           {user?.is_admin && <NavLink to="/admin">ניהול</NavLink>}
         </nav>
         <div className="content-area">

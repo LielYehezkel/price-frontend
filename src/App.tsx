@@ -22,6 +22,7 @@ import { AdminScanEnginePage } from "./pages/AdminScanEnginePage";
 import { AdminOperationsLogPage } from "./pages/AdminOperationsLogPage";
 import { AdminSystemConfigPage } from "./pages/AdminSystemConfigPage";
 import { ShopAiChatPage } from "./pages/ShopAiChatPage";
+import { ShopWhatsappOnboardingPage } from "./pages/ShopWhatsappOnboardingPage";
 
 function Protected({ children }: { children: React.ReactNode }) {
   const { token, loading } = useAuth();
@@ -115,6 +116,7 @@ export default function App() {
         <Route path="setup" element={<ShopSetupPage />} />
         <Route path="analytics" element={<ShopAnalyticsPage />} />
         <Route path="assistant" element={<ShopAiChatPage />} />
+        <Route path="assistant/whatsapp" element={<ShopWhatsappOnboardingPage />} />
       </Route>
       <Route path="/" element={<Home />} />
       <Route path="*" element={<Navigate to="/" replace />} />

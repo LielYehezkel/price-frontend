@@ -1,5 +1,5 @@
 import { FormEvent, useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 
 import { useAuth } from "../auth/AuthContext";
 import {
@@ -212,6 +212,11 @@ export function ShopAiChatPage() {
   return (
     <div style={{ maxWidth: 900 }}>
       <h1 style={{ marginTop: 0 }}>עוזר AI לניהול מוצרים</h1>
+      <div style={{ marginBottom: "0.75rem" }}>
+        <Link className="btn btn-secondary" to={`/app/${sid}/assistant/whatsapp`}>
+          מעבר לאשף חיבור WhatsApp החדש
+        </Link>
+      </div>
       <p className="text-muted">
         אפשר לכתוב למשל: "תוריד את בורדו 4 מושבים מהמלאי" או "תוריד מחיר ב-50 ש&quot;ח לסנטיאגו 4
         מושבים".
