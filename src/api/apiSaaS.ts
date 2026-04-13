@@ -381,6 +381,60 @@ export async function apiPatchProductAutoPricing(
   });
 }
 
+export type AiChatCandidateOut = {
+  product_id: number;
+  name: string;
+  score: number;
+  current_price: number | null;
+};
+
+export type AiChatPlanOut = {
+  status: "needs_confirmation" | "needs_disambiguation" | "cannot_plan";
+  action: "reduce_price" | "out_of_stock" | "unknown";
+  question: string;
+  product_id?: number | null;
+  product_name?: string | null;
+  delta_amount?: number | null;
+  from_price?: number | null;
+  to_price?: number | null;
+  currency?: string | null;
+  candidates?: AiChatCandidateOut[];
+  confirm_payload?: Record<string, unknown> | null;
+};
+
+export type AiChatConfirmOut = {
+  status: "executed" | "cancelled";
+  action: string;
+  product_id?: number | null;
+  product_name?: string | null;
+  before?: Record<string, unknown> | null;
+  after?: Record<string, unknown> | null;
+};
+
+export async function apiAiChatPlan(
+  token: string,
+  shopId: number,
+  message: string,
+): Promise<AiChatPlanOut> {
+  return request(`/api/shops/${shopId}/ai/chat/plan`, {
+    token,
+    method: "POST",
+    body: JSON.stringify({ message }),
+  });
+}
+
+export async function apiAiChatConfirm(
+  token: string,
+  shopId: number,
+  body: { approved: boolean; payload: Record<string, unknown> },
+): Promise<AiChatConfirmOut> {
+  return request(`/api/shops/${shopId}/ai/chat/confirm`, {
+    token,
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
 export async function apiCompetitorLabels(
   token: string,
   shopId: number,
@@ -703,10 +757,24 @@ export type PriceResolveOut = {
   learned_selector: string | null;
   candidates: PriceCandidate[];
   resolution_token: string | null;
+  /** http | playwright_proxy — לשמירה ב-confirm */
+  fetch_strategy_used?: string | null;
 };
 
+const PRICE_RESOLVE_CLIENT_TIMEOUT_MS = 120_000;
+
 export async function apiPriceResolve(body: { url: string }): Promise<PriceResolveOut> {
-  return request("/api/price/resolve", { method: "POST", body: JSON.stringify(body) });
+  const ctl = new AbortController();
+  const t = setTimeout(() => ctl.abort(), PRICE_RESOLVE_CLIENT_TIMEOUT_MS);
+  try {
+    return await request("/api/price/resolve", {
+      method: "POST",
+      body: JSON.stringify(body),
+      signal: ctl.signal,
+    });
+  } finally {
+    clearTimeout(t);
+  }
 }
 
 /** פאנל אדמין — אפשר להתעלם מסלקטור שמור ולקבל רשימת מועמדים מחדש */
@@ -714,11 +782,18 @@ export async function apiAdminPriceResolve(
   token: string,
   body: { url: string; ignore_saved_selector: boolean },
 ): Promise<PriceResolveOut> {
-  return request("/api/admin/price-resolve", {
-    token,
-    method: "POST",
-    body: JSON.stringify(body),
-  });
+  const ctl = new AbortController();
+  const t = setTimeout(() => ctl.abort(), PRICE_RESOLVE_CLIENT_TIMEOUT_MS);
+  try {
+    return await request("/api/admin/price-resolve", {
+      token,
+      method: "POST",
+      body: JSON.stringify(body),
+      signal: ctl.signal,
+    });
+  } finally {
+    clearTimeout(t);
+  }
 }
 
 export async function apiPriceConfirm(body: {
@@ -726,8 +801,19 @@ export async function apiPriceConfirm(body: {
   css_selector: string;
   resolution_token?: string | null;
   selector_alternates?: string[];
+  fetch_strategy?: string | null;
 }): Promise<{ ok: boolean; domain: string }> {
-  return request("/api/price/confirm", { method: "POST", body: JSON.stringify(body) });
+  const ctl = new AbortController();
+  const t = setTimeout(() => ctl.abort(), PRICE_RESOLVE_CLIENT_TIMEOUT_MS);
+  try {
+    return await request("/api/price/confirm", {
+      method: "POST",
+      body: JSON.stringify(body),
+      signal: ctl.signal,
+    });
+  } finally {
+    clearTimeout(t);
+  }
 }
 
 /** תוסף ישן (ping בלבד) — להקמת חנות משתמשים ב־apiDownloadWpPluginZip לפי חנות. */

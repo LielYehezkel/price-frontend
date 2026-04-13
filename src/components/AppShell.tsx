@@ -10,6 +10,7 @@ const titles: Record<string, string> = {
   logs: "יומן סריקות",
   setup: "הקמת חנות",
   analytics: "השפעה ומכירות",
+  assistant: "עוזר AI",
 };
 
 export function AppShell() {
@@ -38,6 +39,7 @@ export function AppShell() {
           <NavLink to={`${base}/alerts`}>התראות</NavLink>
           <NavLink to={`${base}/settings`}>הגדרות</NavLink>
           <NavLink to={`${base}/setup`}>הקמת חנות</NavLink>
+          <NavLink to={`${base}/assistant`}>עוזר AI</NavLink>
           <NavLink to="/shops">כל החנויות</NavLink>
           {user?.is_admin && <NavLink to="/admin">פאנל ניהול</NavLink>}
         </nav>
@@ -56,6 +58,7 @@ export function AppShell() {
           <NavLink to={`${base}/alerts`}>התראות</NavLink>
           <NavLink to={`${base}/settings`}>הגדרות</NavLink>
           <NavLink to={`${base}/setup`}>הקמה</NavLink>
+          <NavLink to={`${base}/assistant`}>עוזר AI</NavLink>
           {user?.is_admin && <NavLink to="/admin">ניהול</NavLink>}
         </nav>
         <div className="content-area">

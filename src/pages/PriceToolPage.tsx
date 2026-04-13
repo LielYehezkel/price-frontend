@@ -14,6 +14,12 @@ function detailMessage(detail: unknown): string {
   return JSON.stringify(detail);
 }
 
+function isAbortError(ex: unknown): boolean {
+  if (ex instanceof DOMException && ex.name === "AbortError") return true;
+  if (ex instanceof Error && ex.name === "AbortError") return true;
+  return false;
+}
+
 export function PriceToolPage() {
   const { token } = useAuth();
   const [url, setUrl] = useState("");
@@ -37,7 +43,11 @@ export function PriceToolPage() {
         : await apiPriceResolve({ url: nextUrl });
       setRes(r);
     } catch (ex: unknown) {
-      setErr(ex instanceof Error ? ex.message : detailMessage(ex));
+      if (isAbortError(ex)) {
+        setErr("הבקשה ארכה יותר מדי — נסו שוב או קישור אחר.");
+      } else {
+        setErr(ex instanceof Error ? ex.message : detailMessage(ex));
+      }
     } finally {
       setLoading(false);
     }
@@ -58,10 +68,15 @@ export function PriceToolPage() {
         css_selector: pick.selector,
         resolution_token: res.resolution_token,
         selector_alternates: pick.selector_alternates,
+        fetch_strategy: res.fetch_strategy_used ?? undefined,
       });
       alert("נשמר לפי דומיין");
     } catch (ex: unknown) {
-      setErr(ex instanceof Error ? ex.message : detailMessage(ex));
+      if (isAbortError(ex)) {
+        setErr("הבקשה ארכה יותר מדי — נסו שוב.");
+      } else {
+        setErr(ex instanceof Error ? ex.message : detailMessage(ex));
+      }
     } finally {
       setLoading(false);
     }

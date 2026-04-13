@@ -21,6 +21,7 @@ import { AdminOverviewPage } from "./pages/AdminOverviewPage";
 import { AdminScanEnginePage } from "./pages/AdminScanEnginePage";
 import { AdminOperationsLogPage } from "./pages/AdminOperationsLogPage";
 import { AdminSystemConfigPage } from "./pages/AdminSystemConfigPage";
+import { ShopAiChatPage } from "./pages/ShopAiChatPage";
 
 function Protected({ children }: { children: React.ReactNode }) {
   const { token, loading } = useAuth();
@@ -113,6 +114,7 @@ export default function App() {
         <Route path="settings" element={<ShopSettingsPage />} />
         <Route path="setup" element={<ShopSetupPage />} />
         <Route path="analytics" element={<ShopAnalyticsPage />} />
+        <Route path="assistant" element={<ShopAiChatPage />} />
       </Route>
       <Route path="/" element={<Home />} />
       <Route path="*" element={<Navigate to="/" replace />} />
