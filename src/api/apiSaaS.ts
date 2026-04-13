@@ -390,7 +390,7 @@ export type AiChatCandidateOut = {
 
 export type AiChatPlanOut = {
   status: "needs_confirmation" | "needs_disambiguation" | "cannot_plan";
-  action: "reduce_price" | "out_of_stock" | "unknown";
+  action: "reduce_price" | "out_of_stock" | "in_stock" | "bulk_reduce_price" | "unknown";
   question: string;
   product_id?: number | null;
   product_name?: string | null;
@@ -409,6 +409,7 @@ export type AiChatConfirmOut = {
   product_name?: string | null;
   before?: Record<string, unknown> | null;
   after?: Record<string, unknown> | null;
+  action_log_id?: number | null;
 };
 
 export async function apiAiChatPlan(
@@ -432,6 +433,149 @@ export async function apiAiChatConfirm(
     token,
     method: "POST",
     body: JSON.stringify(body),
+  });
+}
+
+export type AiActionLogOut = {
+  id: number;
+  action: string;
+  status: string;
+  product_id: number | null;
+  created_at: string;
+  undo_deadline_at: string | null;
+  undone_at: string | null;
+  payload: Record<string, unknown>;
+};
+
+export type AiUndoOut = {
+  ok: boolean;
+  action_id: number;
+  status: string;
+  detail: string;
+};
+
+export async function apiAiActionLogs(
+  token: string,
+  shopId: number,
+  limit: number = 30,
+): Promise<AiActionLogOut[]> {
+  return request(`/api/shops/${shopId}/ai/actions?limit=${limit}`, { token, method: "GET" });
+}
+
+export async function apiAiUndoAction(
+  token: string,
+  shopId: number,
+  actionId: number,
+): Promise<AiUndoOut> {
+  return request(`/api/shops/${shopId}/ai/actions/${actionId}/undo`, { token, method: "POST" });
+}
+
+export type WhatsappConfigOut = {
+  enabled: boolean;
+  phone_number_id: string | null;
+  business_account_id: string | null;
+  verify_token: string | null;
+  access_token_masked: string | null;
+  webhook_url: string | null;
+  webhook_verify_url: string | null;
+  updated_at: string | null;
+};
+
+export type WhatsappConfigIn = {
+  enabled: boolean;
+  phone_number_id: string;
+  business_account_id?: string | null;
+  verify_token: string;
+  access_token: string;
+};
+
+export type WhatsappGuideOut = {
+  title: string;
+  steps: string[];
+  webhook_url: string | null;
+  verify_token: string | null;
+  notes: string[];
+};
+
+export type WhatsappValidationOut = {
+  ok: boolean;
+  detail: string;
+  phone_info?: Record<string, unknown> | null;
+};
+
+export type WhatsappSendTestIn = {
+  to_phone_e164: string;
+  text?: string | null;
+};
+
+export type WhatsappSendTestOut = {
+  ok: boolean;
+  detail: string;
+  meta_response?: Record<string, unknown> | null;
+};
+
+export type WhatsappWizardStepOut = {
+  key: string;
+  title: string;
+  done: boolean;
+  help_text: string;
+};
+
+export type WhatsappWizardOut = {
+  completed: boolean;
+  current_step_key: string;
+  steps: WhatsappWizardStepOut[];
+  webhook_url: string | null;
+  verify_token: string | null;
+  blocking_issues: string[];
+};
+
+export async function apiGetWhatsappConfig(token: string, shopId: number): Promise<WhatsappConfigOut> {
+  return request(`/api/shops/${shopId}/ai/whatsapp/config`, { token, method: "GET" });
+}
+
+export async function apiPutWhatsappConfig(
+  token: string,
+  shopId: number,
+  body: WhatsappConfigIn,
+): Promise<WhatsappConfigOut> {
+  return request(`/api/shops/${shopId}/ai/whatsapp/config`, {
+    token,
+    method: "PUT",
+    body: JSON.stringify(body),
+  });
+}
+
+export async function apiWhatsappGuide(token: string, shopId: number): Promise<WhatsappGuideOut> {
+  return request(`/api/shops/${shopId}/ai/whatsapp/guide`, { token, method: "GET" });
+}
+
+export async function apiWhatsappValidateCredentials(
+  token: string,
+  shopId: number,
+): Promise<WhatsappValidationOut> {
+  return request(`/api/shops/${shopId}/ai/whatsapp/validate-credentials`, {
+    token,
+    method: "POST",
+  });
+}
+
+export async function apiWhatsappSendTest(
+  token: string,
+  shopId: number,
+  body: WhatsappSendTestIn,
+): Promise<WhatsappSendTestOut> {
+  return request(`/api/shops/${shopId}/ai/whatsapp/send-test`, {
+    token,
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export async function apiWhatsappWizard(token: string, shopId: number): Promise<WhatsappWizardOut> {
+  return request(`/api/shops/${shopId}/ai/whatsapp/wizard`, {
+    token,
+    method: "GET",
   });
 }
 
