@@ -7,16 +7,8 @@ import {
   apiAiChatConfirm,
   apiAiChatPlan,
   apiAiUndoAction,
-  apiGetWhatsappConfig,
-  apiPutWhatsappConfig,
-  apiWhatsappSendTest,
-  apiWhatsappGuide,
-  apiWhatsappValidateCredentials,
-  apiWhatsappWizard,
   type AiActionLogOut,
   type AiChatPlanOut,
-  type WhatsappGuideOut,
-  type WhatsappWizardOut,
 } from "../api/apiSaaS";
 
 type ChatLog =
@@ -34,18 +26,7 @@ export function ShopAiChatPage() {
   const [plan, setPlan] = useState<AiChatPlanOut | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [actionLogs, setActionLogs] = useState<AiActionLogOut[]>([]);
-  const [guide, setGuide] = useState<WhatsappGuideOut | null>(null);
-  const [waEnabled, setWaEnabled] = useState(false);
-  const [waPhoneNumberId, setWaPhoneNumberId] = useState("");
-  const [waBusinessId, setWaBusinessId] = useState("");
-  const [waVerifyToken, setWaVerifyToken] = useState("");
-  const [waAccessToken, setWaAccessToken] = useState("");
   const [metaLoaded, setMetaLoaded] = useState(false);
-  const [waWizard, setWaWizard] = useState<WhatsappWizardOut | null>(null);
-  const [waValidation, setWaValidation] = useState<string>("");
-  const [waTestPhone, setWaTestPhone] = useState("");
-  const [waTestText, setWaTestText] = useState("בדיקת חיבור מהעוזר האוטומטי - ההתחברות הצליחה");
-  const [copiedField, setCopiedField] = useState<string>("");
 
   useEffect(() => {
     void loadMeta();
@@ -54,19 +35,8 @@ export function ShopAiChatPage() {
 
   async function loadMeta() {
     if (!token || !sid) return;
-    const [l, g, c, w] = await Promise.all([
-      apiAiActionLogs(token, sid, 20),
-      apiWhatsappGuide(token, sid),
-      apiGetWhatsappConfig(token, sid),
-      apiWhatsappWizard(token, sid),
-    ]);
+    const l = await apiAiActionLogs(token, sid, 20);
     setActionLogs(l);
-    setGuide(g);
-    setWaEnabled(c.enabled);
-    setWaPhoneNumberId(c.phone_number_id ?? "");
-    setWaBusinessId(c.business_account_id ?? "");
-    setWaVerifyToken(c.verify_token ?? "");
-    setWaWizard(w);
     setMetaLoaded(true);
   }
 
@@ -133,82 +103,6 @@ export function ShopAiChatPage() {
     }
   }
 
-  async function onSaveWhatsapp(e: FormEvent) {
-    e.preventDefault();
-    if (!token || !sid) return;
-    setLoading(true);
-    setErr(null);
-    try {
-      await apiPutWhatsappConfig(token, sid, {
-        enabled: waEnabled,
-        phone_number_id: waPhoneNumberId,
-        business_account_id: waBusinessId || null,
-        verify_token: waVerifyToken,
-        access_token: waAccessToken,
-      });
-      setWaValidation("שלב 1 הושלם: ההגדרות נשמרו. אפשר להמשיך לבדיקת Meta.");
-      await loadMeta();
-      setLogs((prev) => [...prev, { role: "assistant", text: "הגדרות WhatsApp נשמרו." }]);
-    } catch (ex: unknown) {
-      setErr(ex instanceof Error ? ex.message : "שגיאה בשמירת הגדרות WhatsApp");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function onValidateWhatsapp() {
-    if (!token || !sid) return;
-    setLoading(true);
-    setErr(null);
-    try {
-      const res = await apiWhatsappValidateCredentials(token, sid);
-      setWaValidation(res.detail);
-      await loadMeta();
-      if (res.ok) {
-        setLogs((prev) => [...prev, { role: "assistant", text: "מעולה, החיבור מול Meta תקין." }]);
-      }
-    } catch (ex: unknown) {
-      setErr(ex instanceof Error ? ex.message : "שגיאה בבדיקת חיבור Meta");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function onSendWhatsappTest() {
-    if (!token || !sid || !waTestPhone.trim()) return;
-    setLoading(true);
-    setErr(null);
-    try {
-      const res = await apiWhatsappSendTest(token, sid, {
-        to_phone_e164: waTestPhone.trim(),
-        text: waTestText,
-      });
-      setWaValidation(res.detail);
-      if (res.ok) {
-        setLogs((prev) => [
-          ...prev,
-          { role: "assistant", text: `הודעת בדיקה נשלחה ל-${waTestPhone.trim()} בהצלחה.` },
-        ]);
-      }
-    } catch (ex: unknown) {
-      setErr(ex instanceof Error ? ex.message : "שגיאה בשליחת הודעת בדיקה");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function copyText(label: string, text: string | null | undefined) {
-    const val = (text ?? "").trim();
-    if (!val) return;
-    try {
-      await navigator.clipboard.writeText(val);
-      setCopiedField(label);
-      setTimeout(() => setCopiedField(""), 1500);
-    } catch {
-      setErr("לא ניתן להעתיק אוטומטית. אפשר להעתיק ידנית.");
-    }
-  }
-
   return (
     <div style={{ maxWidth: 900 }}>
       <h1 style={{ marginTop: 0 }}>עוזר AI לניהול מוצרים</h1>
@@ -241,7 +135,7 @@ export function ShopAiChatPage() {
             onClick={() => loadMeta()}
             disabled={loading}
           >
-            רענן יומן/ווצאפ
+            רענן יומן
           </button>
         </form>
         {err && <div style={{ marginTop: "0.75rem", color: "#b91c1c" }}>{err}</div>}
@@ -292,7 +186,7 @@ export function ShopAiChatPage() {
       <div className="card" style={{ marginTop: "1rem", marginBottom: "1rem" }}>
         <h3 style={{ marginTop: 0 }}>Audit + Undo (5 דקות)</h3>
         {!metaLoaded && (
-          <div className="text-muted">לחץ "רענן יומן/ווצאפ" כדי לטעון את היומן.</div>
+          <div className="text-muted">לחץ "רענן יומן" כדי לטעון את היומן.</div>
         )}
         {metaLoaded && actionLogs.length === 0 && (
           <div className="text-muted">עדיין אין פעולות AI ביומן.</div>
@@ -313,189 +207,6 @@ export function ShopAiChatPage() {
             )}
           </div>
         ))}
-      </div>
-
-      <div className="card">
-        <h3 style={{ marginTop: 0 }}>חיבור WhatsApp (אשף מודרך)</h3>
-        {!metaLoaded && (
-          <div className="text-muted">לחץ "רענן יומן/ווצאפ" כדי לטעון מדריך וחיבור.</div>
-        )}
-        {guide && (
-          <>
-            <div style={{ marginBottom: "0.5rem" }}>
-              <strong>{guide.title}</strong>
-            </div>
-            <ol style={{ marginTop: 0 }}>
-              {guide.steps.map((s, i) => (
-                <li key={i}>{s}</li>
-              ))}
-            </ol>
-            {guide.webhook_url && (
-              <div style={{ marginBottom: "0.75rem" }}>
-                <div>
-                  <strong>Webhook URL:</strong> <code>{guide.webhook_url}</code>
-                </div>
-                <div>
-                  <strong>Verify Token:</strong> <code>{guide.verify_token ?? "-"}</code>
-                </div>
-              </div>
-            )}
-            <ul>
-              {guide.notes.map((n, i) => (
-                <li key={i}>{n}</li>
-              ))}
-            </ul>
-          </>
-        )}
-        {waWizard && (
-          <div style={{ marginBottom: "0.75rem", padding: "0.75rem", border: "1px solid #eee" }}>
-            <strong>מצב חיבור:</strong>{" "}
-            {waWizard.completed ? "הושלם" : `בביצוע (${waWizard.current_step_key})`}
-            <ol style={{ marginBottom: 0 }}>
-              {waWizard.steps.map((s) => (
-                <li key={s.key} style={{ color: s.done ? "#15803d" : "#111827" }}>
-                  {s.done ? "✓" : "•"} {s.title} — {s.help_text}
-                </li>
-              ))}
-            </ol>
-            {waWizard.blocking_issues.length > 0 && (
-              <div style={{ marginTop: "0.75rem", color: "#b91c1c" }}>
-                <strong>חסמים לטיפול:</strong>
-                <ul>
-                  {waWizard.blocking_issues.map((issue, idx) => (
-                    <li key={idx}>{issue}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </div>
-        )}
-
-        <form onSubmit={onSaveWhatsapp}>
-          <label style={{ display: "block", marginBottom: "0.5rem" }}>
-            <input
-              type="checkbox"
-              checked={waEnabled}
-              onChange={(e) => setWaEnabled(e.target.checked)}
-              disabled={loading}
-            />{" "}
-            הפעל חיבור WhatsApp לחנות
-          </label>
-          <input
-            className="input"
-            style={{ marginBottom: "0.5rem" }}
-            placeholder="Phone Number ID"
-            value={waPhoneNumberId}
-            onChange={(e) => setWaPhoneNumberId(e.target.value)}
-            disabled={loading}
-          />
-          <input
-            className="input"
-            style={{ marginBottom: "0.5rem" }}
-            placeholder="Business Account ID (optional)"
-            value={waBusinessId}
-            onChange={(e) => setWaBusinessId(e.target.value)}
-            disabled={loading}
-          />
-          <input
-            className="input"
-            style={{ marginBottom: "0.5rem" }}
-            placeholder="Verify Token"
-            value={waVerifyToken}
-            onChange={(e) => setWaVerifyToken(e.target.value)}
-            disabled={loading}
-          />
-          <input
-            className="input"
-            style={{ marginBottom: "0.75rem" }}
-            placeholder="Access Token"
-            value={waAccessToken}
-            onChange={(e) => setWaAccessToken(e.target.value)}
-            disabled={loading}
-          />
-          <button className="btn" type="submit" disabled={loading}>
-            שלב 1: שמור הגדרות
-          </button>
-          <button
-            className="btn btn-secondary"
-            type="button"
-            style={{ marginInlineStart: "0.5rem" }}
-            onClick={onValidateWhatsapp}
-            disabled={loading || !waPhoneNumberId.trim() || !waAccessToken.trim()}
-          >
-            שלב 2: בדוק חיבור מול Meta
-          </button>
-        </form>
-        <div style={{ marginTop: "0.75rem", padding: "0.75rem", border: "1px dashed #d1d5db" }}>
-          <strong>שלב 2.5: העתקה מהירה ל-Meta</strong>
-          <div style={{ marginTop: "0.5rem" }}>
-            <div style={{ marginBottom: "0.35rem" }}>
-              <strong>Webhook URL:</strong>{" "}
-              <code>{waWizard?.webhook_url || guide?.webhook_url || "לא זמין עדיין"}</code>
-            </div>
-            <button
-              className="btn btn-secondary"
-              type="button"
-              onClick={() => copyText("webhook", waWizard?.webhook_url || guide?.webhook_url)}
-              disabled={loading || !(waWizard?.webhook_url || guide?.webhook_url)}
-            >
-              העתק Webhook URL
-            </button>
-          </div>
-          <div style={{ marginTop: "0.65rem" }}>
-            <div style={{ marginBottom: "0.35rem" }}>
-              <strong>Verify Token:</strong>{" "}
-              <code>{waWizard?.verify_token || guide?.verify_token || "לא זמין עדיין"}</code>
-            </div>
-            <button
-              className="btn btn-secondary"
-              type="button"
-              onClick={() => copyText("verify_token", waWizard?.verify_token || guide?.verify_token)}
-              disabled={loading || !(waWizard?.verify_token || guide?.verify_token)}
-            >
-              העתק Verify Token
-            </button>
-          </div>
-          {copiedField && (
-            <div style={{ marginTop: "0.5rem", color: "#15803d" }}>הועתק: {copiedField}</div>
-          )}
-        </div>
-        <div style={{ marginTop: "0.75rem", borderTop: "1px solid #eee", paddingTop: "0.75rem" }}>
-          <strong>שלב 3: בדיקת שליחת הודעה</strong>
-          <div className="text-muted" style={{ marginBottom: "0.5rem" }}>
-            הזן מספר יעד בפורמט בינלאומי, למשל: +9725XXXXXXXX
-          </div>
-          <input
-            className="input"
-            style={{ marginBottom: "0.5rem" }}
-            placeholder="מספר יעד לבדיקה (+972...)"
-            value={waTestPhone}
-            onChange={(e) => setWaTestPhone(e.target.value)}
-            disabled={loading}
-          />
-          <input
-            className="input"
-            style={{ marginBottom: "0.5rem" }}
-            placeholder="טקסט בדיקה"
-            value={waTestText}
-            onChange={(e) => setWaTestText(e.target.value)}
-            disabled={loading}
-          />
-          <button className="btn btn-secondary" type="button" onClick={onSendWhatsappTest} disabled={loading}>
-            שלח הודעת בדיקה
-          </button>
-        </div>
-        <div style={{ marginTop: "0.75rem", borderTop: "1px solid #eee", paddingTop: "0.75rem" }}>
-          <strong>שלב 4: הפעלה סופית</strong>
-          <div className="text-muted" style={{ marginTop: "0.35rem" }}>
-            לאחר ששלחת הודעת בדיקה בהצלחה, סמן "הפעל חיבור WhatsApp לחנות" ולחץ שוב על "שמור הגדרות".
-          </div>
-        </div>
-        {waValidation && (
-          <div style={{ marginTop: "0.75rem", color: "#0369a1" }}>
-            <strong>סטטוס:</strong> {waValidation}
-          </div>
-        )}
       </div>
     </div>
   );

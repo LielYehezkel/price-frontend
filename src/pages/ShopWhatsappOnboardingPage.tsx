@@ -155,6 +155,34 @@ export function ShopWhatsappOnboardingPage() {
         </div>
       </div>
 
+      <div className="wa-onboard-guide">
+        <h2>מדריך קצר לפני שמתחילים</h2>
+        <p>
+          המטרה: לקחת חנות שלא מחוברת בכלל, ולהגיע לחיבור פעיל עם בדיקת הודעה מוצלחת תוך כמה דקות.
+        </p>
+        <h3>שלב 1 - מה בדיוק צריך להכין לפני שממלאים</h3>
+        <ol>
+          <li>
+            היכנס ל-Meta Developers &gt; האפליקציה שלך &gt; WhatsApp.
+          </li>
+          <li>
+            העתק <strong>Phone Number ID</strong> מתוך אזור ה-API Setup.
+          </li>
+          <li>
+            צור <strong>Access Token</strong> (זמני או קבוע) עם הרשאות WhatsApp Cloud API.
+          </li>
+          <li>
+            בחר <strong>Verify Token</strong> משלך (טקסט חופשי, לדוגמה: <code>my-shop-verify-2026</code>).
+          </li>
+          <li>
+            אם יש לך, הוסף גם <strong>Business Account ID</strong> (לא חובה להפעלה ראשונית).
+          </li>
+        </ol>
+        <p className="text-muted">
+          טיפ חשוב: אם אין לך עדיין `PUBLIC_API_BASE` ציבורי בשרת, המערכת תציג זאת בחסמים ותעצור אותך לפני שלב ה-Webhook.
+        </p>
+      </div>
+
       {wizard?.blocking_issues?.length ? (
         <div className="wa-onboard-alert wa-onboard-alert--danger">
           <strong>לפני שממשיכים:</strong>
@@ -173,7 +201,7 @@ export function ShopWhatsappOnboardingPage() {
           <span className="wa-step__badge">{steps.find((s) => s.key === "save_config")?.done ? "✓" : "1"}</span>
           <div>
             <h3>שלב 1: שמירת פרטי החיבור</h3>
-            <p>הדבק את הפרטים שקיבלת מ-Meta ושמור.</p>
+            <p>הדבק את הפרטים מהשלב המקדמי למעלה ולחץ "שמור והמשך".</p>
           </div>
         </header>
         <form onSubmit={saveConfig} className="wa-step__body">

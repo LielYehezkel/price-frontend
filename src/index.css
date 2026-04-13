@@ -3025,6 +3025,35 @@ textarea.code-area {
   color: #312e81;
 }
 
+.wa-onboard-guide {
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: #fff;
+  padding: 1rem 1.1rem;
+  box-shadow: var(--shadow);
+}
+
+.wa-onboard-guide h2 {
+  margin: 0 0 0.55rem;
+  font-size: 1.1rem;
+}
+
+.wa-onboard-guide h3 {
+  margin: 0.85rem 0 0.45rem;
+  font-size: 1rem;
+}
+
+.wa-onboard-guide p {
+  margin: 0 0 0.45rem;
+}
+
+.wa-onboard-guide ol {
+  margin: 0;
+  padding-inline-start: 1.1rem;
+  display: grid;
+  gap: 0.35rem;
+}
+
 .wa-step {
   border-radius: var(--radius);
   border: 1px solid var(--border);
