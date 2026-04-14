@@ -3505,3 +3505,52 @@ textarea.code-area {
   padding: 0.2rem 0.55rem;
 }
 
+.wa-step.is-hidden {
+  display: none;
+}
+
+.wa-step-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.wa-step-nav__item {
+  border: 1px solid var(--border);
+  background: #fff;
+  color: var(--text);
+  border-radius: 999px;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.wa-step-nav__item.is-active {
+  border-color: transparent;
+  color: #fff;
+  background: linear-gradient(135deg, #4f46e5, #6366f1);
+  box-shadow: 0 10px 24px rgba(79, 70, 229, 0.22);
+}
+
+.wa-step-fx {
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  background: rgba(16, 185, 129, 0.12);
+  color: #065f46;
+  border-radius: var(--radius-sm);
+  padding: 0.55rem 0.75rem;
+  font-weight: 700;
+  animation: waPulse 0.8s ease-in-out infinite alternate;
+}
+
+@keyframes waPulse {
+  from {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  to {
+    transform: scale(1.01);
+    opacity: 1;
+  }
+}
+

@@ -30,6 +30,8 @@ export function ShopWhatsappOnboardingPage() {
   const [testPhone, setTestPhone] = useState("");
   const [testText, setTestText] = useState("בדיקת חיבור מהמערכת - הצלחה");
   const [editMode, setEditMode] = useState(false);
+  const [focusedStep, setFocusedStep] = useState<"save_config" | "verify_credentials" | "set_webhook" | "enable_bot">("save_config");
+  const [stepFx, setStepFx] = useState<string | null>(null);
 
   const steps = useMemo(() => wizard?.steps ?? [], [wizard]);
   const doneCount = steps.filter((s) => s.done).length;
@@ -37,6 +39,18 @@ export function ShopWhatsappOnboardingPage() {
   const progress = Math.round((doneCount / totalCount) * 100);
   const activeKey = wizard?.current_step_key ?? "save_config";
   const isConnected = Boolean(wizard?.completed && enabled);
+
+  useEffect(() => {
+    if (!wizard?.completed && activeKey !== "done") {
+      setFocusedStep(activeKey as "save_config" | "verify_credentials" | "set_webhook" | "enable_bot");
+    }
+  }, [activeKey, wizard?.completed]);
+
+  async function playStepCheck(label: string) {
+    setStepFx(label);
+    await new Promise((resolve) => setTimeout(resolve, 850));
+    setStepFx(null);
+  }
 
   async function load() {
     if (!token || !sid) return;
@@ -60,6 +74,7 @@ export function ShopWhatsappOnboardingPage() {
     setLoading(true);
     setErr(null);
     try {
+      await playStepCheck("בודק ושומר שלב 1...");
       await apiPutWhatsappConfig(token, sid, {
         enabled,
         phone_number_id: phoneNumberId,
@@ -70,6 +85,7 @@ export function ShopWhatsappOnboardingPage() {
       });
       setStatusMsg("שמירה בוצעה. ממשיכים לשלב הבא.");
       await load();
+      setFocusedStep("verify_credentials");
     } catch (ex: unknown) {
       setErr(ex instanceof Error ? ex.message : "שגיאה בשמירת הגדרות");
     } finally {
@@ -82,6 +98,7 @@ export function ShopWhatsappOnboardingPage() {
     setLoading(true);
     setErr(null);
     try {
+      await playStepCheck("בודק ומסיים הפעלה...");
       await apiPutWhatsappConfig(token, sid, {
         enabled,
         phone_number_id: phoneNumberId,
@@ -104,9 +121,11 @@ export function ShopWhatsappOnboardingPage() {
     setLoading(true);
     setErr(null);
     try {
+      await playStepCheck("מאמת מול Meta...");
       const res = await apiWhatsappValidateCredentials(token, sid);
       setStatusMsg(res.detail);
       await load();
+      if (res.ok) setFocusedStep("set_webhook");
     } catch (ex: unknown) {
       setErr(ex instanceof Error ? ex.message : "שגיאה בבדיקת Meta");
     } finally {
@@ -162,6 +181,26 @@ export function ShopWhatsappOnboardingPage() {
           </div>
         </div>
       </div>
+
+      <div className="wa-step-nav">
+        {[
+          { key: "save_config", label: "1. שמירה" },
+          { key: "verify_credentials", label: "2. אימות" },
+          { key: "set_webhook", label: "3. Webhook" },
+          { key: "enable_bot", label: "4. הפעלה" },
+        ].map((s) => (
+          <button
+            key={s.key}
+            type="button"
+            className={`wa-step-nav__item ${focusedStep === s.key ? "is-active" : ""}`}
+            onClick={() => setFocusedStep(s.key as "save_config" | "verify_credentials" | "set_webhook" | "enable_bot")}
+          >
+            {s.label}
+          </button>
+        ))}
+      </div>
+
+      {stepFx ? <div className="wa-step-fx">{stepFx}</div> : null}
 
       {isConnected && !editMode ? (
         <section className="wa-connected-banner">
@@ -225,7 +264,7 @@ export function ShopWhatsappOnboardingPage() {
       {err ? <div className="wa-onboard-alert wa-onboard-alert--danger">{err}</div> : null}
       {statusMsg ? <div className="wa-onboard-alert wa-onboard-alert--info">{statusMsg}</div> : null}
 
-      <section className={`wa-step wa-step--quest ${activeKey === "save_config" ? "is-active" : ""}`}>
+      <section className={`wa-step wa-step--quest ${activeKey === "save_config" ? "is-active" : ""} ${focusedStep !== "save_config" ? "is-hidden" : ""}`}>
         <header>
           <span className="wa-step__badge">{steps.find((s) => s.key === "save_config")?.done ? "✓" : "1"}</span>
           <div>
@@ -253,7 +292,7 @@ export function ShopWhatsappOnboardingPage() {
         </form>
       </section>
 
-      <section className={`wa-step wa-step--quest ${activeKey === "verify_credentials" ? "is-active" : ""}`}>
+      <section className={`wa-step wa-step--quest ${activeKey === "verify_credentials" ? "is-active" : ""} ${focusedStep !== "verify_credentials" ? "is-hidden" : ""}`}>
         <header>
           <span className="wa-step__badge">{steps.find((s) => s.key === "verify_credentials")?.done ? "✓" : "2"}</span>
           <div>
@@ -263,13 +302,13 @@ export function ShopWhatsappOnboardingPage() {
           <span className="wa-step__state">{steps.find((s) => s.key === "verify_credentials")?.done ? "הושלם" : "ממתין"}</span>
         </header>
         <div className="wa-step__body">
-          <button className="btn" onClick={validateMeta} disabled={loading}>
+          <button type="button" className="btn" onClick={validateMeta} disabled={loading}>
             בדוק חיבור מול Meta
           </button>
         </div>
       </section>
 
-      <section className={`wa-step wa-step--quest ${activeKey === "set_webhook" ? "is-active" : ""}`}>
+      <section className={`wa-step wa-step--quest ${activeKey === "set_webhook" ? "is-active" : ""} ${focusedStep !== "set_webhook" ? "is-hidden" : ""}`}>
         <header>
           <span className="wa-step__badge">{steps.find((s) => s.key === "set_webhook")?.done ? "✓" : "3"}</span>
           <div>
@@ -304,7 +343,7 @@ export function ShopWhatsappOnboardingPage() {
         </div>
       </section>
 
-      <section className={`wa-step wa-step--quest ${activeKey === "enable_bot" ? "is-active" : ""}`}>
+      <section className={`wa-step wa-step--quest ${activeKey === "enable_bot" ? "is-active" : ""} ${focusedStep !== "enable_bot" ? "is-hidden" : ""}`}>
         <header>
           <span className="wa-step__badge">{steps.find((s) => s.key === "enable_bot")?.done ? "✓" : "4"}</span>
           <div>
@@ -323,14 +362,14 @@ export function ShopWhatsappOnboardingPage() {
           />
           <input className="input" placeholder="טקסט בדיקה" value={testText} onChange={(e) => setTestText(e.target.value)} disabled={loading} />
           <div className="flex-row">
-            <button className="btn secondary" onClick={sendTest} disabled={loading || !testPhone.trim()}>
+            <button type="button" className="btn secondary" onClick={sendTest} disabled={loading || !testPhone.trim()}>
               שלח הודעת בדיקה
             </button>
             <label className="text-muted" style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
               <input type="checkbox" checked={enabled} onChange={(e) => setEnabled(e.target.checked)} disabled={loading} />
               הפעל חיבור לחנות
             </label>
-            <button className="btn" onClick={saveActivation} disabled={loading || !enabled}>
+            <button type="button" className="btn" onClick={saveActivation} disabled={loading || !enabled}>
               שמור הפעלה
             </button>
           </div>
