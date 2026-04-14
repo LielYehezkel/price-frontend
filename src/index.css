@@ -3245,6 +3245,130 @@ textarea.code-area {
   min-height: 320px;
 }
 
+/* Dashboard v3 premium tabs */
+.dash-v3 {
+  display: grid;
+  gap: 1rem;
+}
+
+.dash-v3-hero {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: flex-start;
+  border: 1px solid rgba(99, 102, 241, 0.28);
+  background: radial-gradient(circle at top right, rgba(129, 140, 248, 0.26), rgba(15, 23, 42, 0.96));
+  border-radius: 20px;
+  padding: 1.1rem 1.2rem;
+  color: #e2e8f0;
+}
+
+.dash-v3-kicker {
+  margin: 0;
+  font-size: 0.72rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: #c7d2fe;
+}
+
+.dash-v3-title {
+  margin: 0.3rem 0 0.2rem;
+  font-size: 1.5rem;
+  color: #f8fafc;
+}
+
+.dash-v3-lead {
+  margin: 0;
+  color: #cbd5e1;
+}
+
+.dash-v3-level {
+  display: grid;
+  justify-items: end;
+  gap: 0.2rem;
+}
+
+.dash-v3-level__badge {
+  border: 1px solid rgba(196, 181, 253, 0.45);
+  background: rgba(79, 70, 229, 0.25);
+  color: #eef2ff;
+  border-radius: 999px;
+  padding: 0.22rem 0.6rem;
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.dash-v3-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+}
+
+.dash-v3-tabs,
+.dash-v3-subtabs {
+  display: inline-flex;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+}
+
+.dash-v3-tab,
+.dash-v3-subtab {
+  border: 1px solid var(--border);
+  background: #fff;
+  color: var(--text);
+  border-radius: 999px;
+  padding: 0.42rem 0.85rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.dash-v3-tab.is-active,
+.dash-v3-subtab.is-active {
+  background: linear-gradient(120deg, #4f46e5, #6366f1);
+  border-color: transparent;
+  color: #fff;
+  box-shadow: 0 8px 20px rgba(79, 70, 229, 0.24);
+}
+
+.dash-v3-actions {
+  display: flex;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+}
+
+.dash-v3-kpis {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+}
+
+.dash-v3-kpi-card {
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: linear-gradient(165deg, #fff, #f8faff);
+  padding: 0.9rem;
+  display: grid;
+  gap: 0.2rem;
+}
+
+.dash-v3-kpi-card span {
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+.dash-v3-kpi-card strong {
+  font-size: 1.28rem;
+  color: var(--text);
+}
+
+.dash-v3-kpi-card small {
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
 .ai-chat-head {
   display: flex;
   justify-content: space-between;

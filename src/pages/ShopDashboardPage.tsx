@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useId, useMemo, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useId, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import {
   apiAccountHealth,
@@ -251,6 +251,8 @@ export function ShopDashboardPage() {
   const [weeklyBusy, setWeeklyBusy] = useState(false);
   const [dismissBusy, setDismissBusy] = useState(false);
   const [recBusy, setRecBusy] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<"overview" | "market" | "intel" | "ops">("overview");
+  const [opsTab, setOpsTab] = useState<"recommendations" | "alerts">("recommendations");
 
   const loadData = useCallback(async () => {
     if (!token || Number.isNaN(sid)) return;
@@ -357,29 +359,46 @@ export function ShopDashboardPage() {
     checklist && !checklist.dismissed && checklist.percent_complete < 100;
 
   const recs = stats?.recommendations ?? [];
+  const healthScore = health?.score ?? 0;
+  const level = Math.max(1, Math.min(10, Math.ceil(healthScore / 10)));
+  const levelTitle = healthScore >= 85 ? "אליטה תפעולית" : healthScore >= 65 ? "שליטה מתקדמת" : "בבנייה";
 
   return (
-    <div className="dash-v2">
-      <header className="dash-v2-header">
-        <div className="dash-v2-header__text">
-          <p className="dash-v2-kicker">מצב תחרותי</p>
-          <h1 className="dash-v2-title">מרכז הפיקוד</h1>
-          <p className="dash-v2-lead">
-            נתוני מעקב, קצב סריקות והתראות — במבנה אחד, בלי רעש.
-          </p>
+    <div className="dash-v2 dash-v3">
+      <header className="dash-v3-hero">
+        <div>
+          <p className="dash-v3-kicker">Premium Command Experience</p>
+          <h1 className="dash-v3-title">מרכז שליטה פרימיום</h1>
+          <p className="dash-v3-lead">כל נתוני החנות מסודרים לפי אזורים, טאבים ותתי-טאבים.</p>
         </div>
-        <div className="dash-v2-header__actions">
-          {health && (
-            <div className={`dash-v2-pill dash-v2-pill--${health.status}`} title={health.summary}>
-              <span className="dash-v2-pill__n">{health.score}</span>
-              <span className="dash-v2-pill__t">בריאות</span>
-            </div>
-          )}
-          <div
-            className={`dash-v2-pill ${healthOk ? "dash-v2-pill--ok" : "dash-v2-pill--warn"}`}
-          >
-            {healthOk ? "אין התראות פתוחות" : `${alertFeed.length} התראות`}
-          </div>
+        <div className="dash-v3-level">
+          <span className="dash-v3-level__badge">Level {level}</span>
+          <strong>{levelTitle}</strong>
+          <small className="tabular-nums">Score: {healthScore}</small>
+        </div>
+      </header>
+
+      <section className="dash-v3-toolbar">
+        <div className="dash-v3-tabs" role="tablist" aria-label="ניווט דאשבורד">
+          {[
+            { key: "overview", label: "סקירה" },
+            { key: "market", label: "שוק ומחירים" },
+            { key: "intel", label: "מודיעין מתחרים" },
+            { key: "ops", label: "בקרה ותפעול" },
+          ].map((tab) => (
+            <button
+              key={tab.key}
+              type="button"
+              role="tab"
+              aria-selected={activeTab === tab.key}
+              className={`dash-v3-tab ${activeTab === tab.key ? "is-active" : ""}`}
+              onClick={() => setActiveTab(tab.key as "overview" | "market" | "intel" | "ops")}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+        <div className="dash-v3-actions">
           <button
             type="button"
             className="btn secondary sm"
@@ -392,7 +411,7 @@ export function ShopDashboardPage() {
             התראות והגדרות
           </Link>
         </div>
-      </header>
+      </section>
 
       {err && (
         <div className="dash-banner dash-banner--error" role="alert">
@@ -400,7 +419,7 @@ export function ShopDashboardPage() {
         </div>
       )}
 
-      {health && (
+      {activeTab === "overview" && health && (
         <section className="dash-v2-section dash-v2-section--compact" aria-label="בריאות חשבון">
           <div className="dash-v2-health">
             <p className="dash-v2-health__summary">{health.summary}</p>
@@ -420,7 +439,7 @@ export function ShopDashboardPage() {
         </section>
       )}
 
-      {showOnboarding && checklist && (
+      {activeTab === "overview" && showOnboarding && checklist && (
         <section className="dash-v2-section" aria-label="הקמת חנות">
           <div className="dash-v2-onboard">
             <div className="dash-v2-onboard__head">
@@ -462,7 +481,32 @@ export function ShopDashboardPage() {
         </section>
       )}
 
-      {stats && (
+      {activeTab === "overview" && stats && (
+        <section className="dash-v3-kpis">
+          <div className="dash-v3-kpi-card">
+            <span>בריאות מערכת</span>
+            <strong className="tabular-nums">{healthScore}</strong>
+            <small>{healthOk ? "סטטוס יציב" : "נדרשת תשומת לב"}</small>
+          </div>
+          <div className="dash-v3-kpi-card">
+            <span>מוצרים במעקב</span>
+            <strong className="tabular-nums">{stats.products_with_competitors}</strong>
+            <small>מתוך {stats.product_count}</small>
+          </div>
+          <div className="dash-v3-kpi-card">
+            <span>התראות פתוחות</span>
+            <strong className="tabular-nums">{alertFeed.length}</strong>
+            <small>{healthOk ? "אין עומס" : "מצריך טיפול"}</small>
+          </div>
+          <div className="dash-v3-kpi-card">
+            <span>סריקות מצטברות</span>
+            <strong className="tabular-nums">{stats.total_scans}</strong>
+            <small>רצף ניטור פעיל</small>
+          </div>
+        </section>
+      )}
+
+      {activeTab === "market" && stats && (
         <section className="dash-v2-bento" aria-label="נתונים">
           <article className="dash-v2-panel dash-v2-panel--chart">
             <div className="dash-v2-panel__head">
@@ -561,7 +605,8 @@ export function ShopDashboardPage() {
         </section>
       )}
 
-      <section className="dash-v2-section">
+      {activeTab === "intel" && (
+        <section className="dash-v2-section">
         <div className="dash-v2-section-head dash-v2-section-head--row">
           <div>
             <h2 className="dash-v2-section-title">מודיעין מתחרים</h2>
@@ -632,80 +677,106 @@ export function ShopDashboardPage() {
             </div>
           </>
         )}
-      </section>
+        </section>
+      )}
 
-      <section className="dash-v2-section">
-        <div className="dash-v2-section-head">
-          <h2 className="dash-v2-section-title">המלצות</h2>
-          <p className="dash-v2-section-sub">סימון &quot;הבנתי&quot; מסתיר פריט עד שתנאים משתנים</p>
-        </div>
-        <ul className="dash-v2-recs">
-          {!stats ? (
-            <li className="dash-v2-rec">
-              <p className="dash-v2-rec__text">טוען…</p>
-            </li>
-          ) : recs?.length === 0 ? (
-            <li className="dash-v2-rec">
-              <p className="dash-v2-rec__text">אין המלצות חדשות כרגע.</p>
-            </li>
-          ) : (
-            recs?.map((r) => (
-              <li key={r.id} className="dash-v2-rec">
-                <p className="dash-v2-rec__text">{r.text}</p>
-                <button
-                  type="button"
-                  className="dash-v2-rec__dismiss"
-                  disabled={recBusy === r.id}
-                  onClick={() => void onDismissRecommendation(r.id)}
-                >
-                  {recBusy === r.id ? "…" : "הבנתי"}
-                </button>
-              </li>
-            ))
-          )}
-        </ul>
-      </section>
-
-      <section className="dash-v2-section">
-        <div className="dash-v2-section-head dash-v2-section-head--row">
-          <div>
-            <h2 className="dash-v2-section-title">התראות אחרונות</h2>
-            <p className="dash-v2-section-sub">לפי ההעדפות שלך בהגדרות — סמן נקרא כשטיפלת</p>
+      {activeTab === "ops" && (
+        <section className="dash-v2-section">
+          <div className="dash-v3-subtabs">
+            <button
+              type="button"
+              className={`dash-v3-subtab ${opsTab === "recommendations" ? "is-active" : ""}`}
+              onClick={() => setOpsTab("recommendations")}
+            >
+              המלצות
+            </button>
+            <button
+              type="button"
+              className={`dash-v3-subtab ${opsTab === "alerts" ? "is-active" : ""}`}
+              onClick={() => setOpsTab("alerts")}
+            >
+              התראות
+            </button>
           </div>
-          <Link to={`${base}/alerts`} className="btn secondary sm">
-            כל ההתראות
-          </Link>
-        </div>
-        <div className="dash-v2-alerts">
-          {alertFeed?.length === 0 ? (
-            <p className="dash-v2-alerts__empty">אין התראות שלא נקראו — מצוין.</p>
-          ) : (
-            alertFeed?.map((a) => (
-              <div key={a.id} className={`dash-v2-alert dash-v2-alert--${a.severity === "hot" ? "hot" : "info"}`}>
-                <div className="dash-v2-alert__top">
-                  <span className="dash-v2-alert__kind">{alertKindLabel[a.kind] ?? a.kind}</span>
-                  <time dateTime={a.created_at}>
-                    {new Date(a.created_at).toLocaleString("he-IL", {
-                      dateStyle: "short",
-                      timeStyle: "short",
-                    })}
-                  </time>
+
+          {opsTab === "recommendations" && (
+            <>
+              <div className="dash-v2-section-head">
+                <h2 className="dash-v2-section-title">המלצות</h2>
+                <p className="dash-v2-section-sub">סימון &quot;הבנתי&quot; מסתיר פריט עד שתנאים משתנים</p>
+              </div>
+              <ul className="dash-v2-recs">
+                {!stats ? (
+                  <li className="dash-v2-rec">
+                    <p className="dash-v2-rec__text">טוען…</p>
+                  </li>
+                ) : recs?.length === 0 ? (
+                  <li className="dash-v2-rec">
+                    <p className="dash-v2-rec__text">אין המלצות חדשות כרגע.</p>
+                  </li>
+                ) : (
+                  recs?.map((r) => (
+                    <li key={r.id} className="dash-v2-rec">
+                      <p className="dash-v2-rec__text">{r.text}</p>
+                      <button
+                        type="button"
+                        className="dash-v2-rec__dismiss"
+                        disabled={recBusy === r.id}
+                        onClick={() => void onDismissRecommendation(r.id)}
+                      >
+                        {recBusy === r.id ? "…" : "הבנתי"}
+                      </button>
+                    </li>
+                  ))
+                )}
+              </ul>
+            </>
+          )}
+
+          {opsTab === "alerts" && (
+            <>
+              <div className="dash-v2-section-head dash-v2-section-head--row">
+                <div>
+                  <h2 className="dash-v2-section-title">התראות אחרונות</h2>
+                  <p className="dash-v2-section-sub">לפי ההעדפות שלך בהגדרות — סמן נקרא כשטיפלת</p>
                 </div>
-                <p className="dash-v2-alert__msg">{a.message}</p>
-                {!a.read && (
-                  <button
-                    type="button"
-                    className="btn ghost sm dash-v2-alert__read"
-                    onClick={() => void onReadAlert(a.id)}
-                  >
-                    סמן כנקרא
-                  </button>
+                <Link to={`${base}/alerts`} className="btn secondary sm">
+                  כל ההתראות
+                </Link>
+              </div>
+              <div className="dash-v2-alerts">
+                {alertFeed?.length === 0 ? (
+                  <p className="dash-v2-alerts__empty">אין התראות שלא נקראו — מצוין.</p>
+                ) : (
+                  alertFeed?.map((a) => (
+                    <div key={a.id} className={`dash-v2-alert dash-v2-alert--${a.severity === "hot" ? "hot" : "info"}`}>
+                      <div className="dash-v2-alert__top">
+                        <span className="dash-v2-alert__kind">{alertKindLabel[a.kind] ?? a.kind}</span>
+                        <time dateTime={a.created_at}>
+                          {new Date(a.created_at).toLocaleString("he-IL", {
+                            dateStyle: "short",
+                            timeStyle: "short",
+                          })}
+                        </time>
+                      </div>
+                      <p className="dash-v2-alert__msg">{a.message}</p>
+                      {!a.read && (
+                        <button
+                          type="button"
+                          className="btn ghost sm dash-v2-alert__read"
+                          onClick={() => void onReadAlert(a.id)}
+                        >
+                          סמן כנקרא
+                        </button>
+                      )}
+                    </div>
+                  ))
                 )}
               </div>
-            ))
+            </>
           )}
-        </div>
-      </section>
+        </section>
+      )}
     </div>
   );
 }
