@@ -390,7 +390,7 @@ export type AiChatCandidateOut = {
 
 export type AiChatPlanOut = {
   status: "needs_confirmation" | "needs_disambiguation" | "cannot_plan";
-  action: "reduce_price" | "out_of_stock" | "in_stock" | "bulk_reduce_price" | "unknown";
+  action: "reduce_price" | "increase_price" | "out_of_stock" | "in_stock" | "bulk_reduce_price" | "unknown";
   question: string;
   product_id?: number | null;
   product_name?: string | null;

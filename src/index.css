@@ -3138,3 +3138,246 @@ textarea.code-area {
   margin: 0.4rem 0 0.8rem;
 }
 
+/* AI premium experience */
+.ai-premium {
+  display: grid;
+  gap: 1rem;
+}
+
+.ai-premium-hero {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 1rem;
+  border-radius: calc(var(--radius) + 6px);
+  padding: 1.2rem 1.3rem;
+  color: #fff;
+  background: radial-gradient(1200px 400px at 10% -10%, #818cf8 0, transparent 45%),
+    linear-gradient(120deg, #0f172a 0%, #1e1b4b 45%, #3730a3 100%);
+  box-shadow: var(--shadow-lg);
+}
+
+.ai-premium-eyebrow {
+  margin: 0 0 0.35rem;
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  opacity: 0.88;
+}
+
+.ai-premium-hero .text-muted {
+  color: rgba(241, 245, 249, 0.85);
+}
+
+.ai-premium-hero__actions {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.ai-premium-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(260px, 0.8fr);
+  gap: 1rem;
+}
+
+@media (max-width: 980px) {
+  .ai-premium-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.ai-main,
+.ai-side {
+  display: grid;
+  gap: 1rem;
+  align-content: start;
+}
+
+.ai-command-card {
+  border-color: rgba(79, 70, 229, 0.28);
+}
+
+.ai-command-form {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.6rem;
+}
+
+@media (max-width: 640px) {
+  .ai-command-form {
+    grid-template-columns: 1fr;
+  }
+}
+
+.ai-quick-prompts {
+  margin-top: 0.7rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.ai-chip {
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  background: rgba(99, 102, 241, 0.08);
+  color: #312e81;
+  border-radius: 999px;
+  padding: 0.3rem 0.65rem;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+.ai-chip:hover {
+  background: rgba(99, 102, 241, 0.14);
+}
+
+.ai-error-banner {
+  margin-top: 0.7rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(220, 38, 38, 0.32);
+  background: var(--danger-soft);
+  color: #991b1b;
+  padding: 0.6rem 0.75rem;
+}
+
+.ai-chat-card {
+  min-height: 320px;
+}
+
+.ai-chat-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.7rem;
+}
+
+.ai-chat-stream {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.ai-msg {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.ai-msg__role {
+  font-size: 0.76rem;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.ai-msg__bubble {
+  border-radius: 12px;
+  padding: 0.65rem 0.8rem;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+}
+
+.ai-msg--assistant .ai-msg__bubble {
+  border-color: rgba(79, 70, 229, 0.22);
+  background: rgba(79, 70, 229, 0.08);
+}
+
+.ai-msg--user .ai-msg__bubble {
+  border-color: rgba(15, 23, 42, 0.14);
+  background: #fff;
+}
+
+.ai-disambiguation-card,
+.ai-confirm-card {
+  border-color: rgba(79, 70, 229, 0.25);
+}
+
+.ai-candidates {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.ai-candidate {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  align-items: center;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.55rem 0.65rem;
+}
+
+.ai-audit-list {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.ai-audit-row {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.55rem 0.65rem;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.ai-audit-row__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+/* WhatsApp connected + quest mode */
+.wa-connected-banner {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 1rem;
+  border-radius: var(--radius);
+  border: 1px solid rgba(5, 150, 105, 0.35);
+  background: var(--success-soft);
+  padding: 0.9rem 1rem;
+}
+
+.wa-connected-banner h3 {
+  margin: 0;
+  color: #065f46;
+}
+
+.wa-connected-banner p {
+  margin: 0.35rem 0 0;
+  color: #065f46;
+}
+
+.wa-connected-banner__actions {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.wa-step--quest {
+  position: relative;
+  overflow: hidden;
+}
+
+.wa-step--quest::after {
+  content: "";
+  position: absolute;
+  inset-inline-start: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: linear-gradient(180deg, #6366f1, #818cf8);
+  opacity: 0.8;
+}
+
+.wa-step__state {
+  margin-inline-start: auto;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--muted);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0.2rem 0.55rem;
+}
+

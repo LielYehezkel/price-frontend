@@ -28,12 +28,14 @@ export function ShopWhatsappOnboardingPage() {
   const [accessToken, setAccessToken] = useState("");
   const [testPhone, setTestPhone] = useState("");
   const [testText, setTestText] = useState("בדיקת חיבור מהמערכת - הצלחה");
+  const [editMode, setEditMode] = useState(false);
 
   const steps = useMemo(() => wizard?.steps ?? [], [wizard]);
   const doneCount = steps.filter((s) => s.done).length;
   const totalCount = steps.length || 4;
   const progress = Math.round((doneCount / totalCount) * 100);
   const activeKey = wizard?.current_step_key ?? "save_config";
+  const isConnected = Boolean(wizard?.completed && enabled);
 
   async function load() {
     if (!token || !sid) return;
@@ -141,7 +143,9 @@ export function ShopWhatsappOnboardingPage() {
       <div className="wa-onboard-hero">
         <div>
           <h1>חיבור WhatsApp לחנות</h1>
-          <p>אשף מהיר, ברור, עם צעד אחד בכל רגע. בסיום החיבור יהיה מוכן לעבודה.</p>
+          <p>
+            אשף אינטראקטיבי בסגנון משימות: כל שלב ברור, עם בדיקה מיידית והכוונה עד חיבור מלא.
+          </p>
         </div>
         <div className="wa-onboard-progress">
           <div className="wa-onboard-progress__label">התקדמות</div>
@@ -154,6 +158,27 @@ export function ShopWhatsappOnboardingPage() {
           </div>
         </div>
       </div>
+
+      {isConnected && !editMode ? (
+        <section className="wa-connected-banner">
+          <div>
+            <h3>החנות כבר מחוברת ל-WhatsApp</h3>
+            <p>
+              מצב פעיל. אפשר להשאיר כמו שהוא, או לעבור לעריכת הגדרות (Token/Phone/Webhook) בלי להריץ שוב את
+              כל האשף.
+            </p>
+          </div>
+          <div className="wa-connected-banner__actions">
+            <span className="badge success">Connected</span>
+            <button className="btn btn-secondary" type="button" onClick={() => setEditMode(true)}>
+              עריכת הגדרות
+            </button>
+            <Link className="btn" to={`/app/${sid}/assistant`}>
+              חזרה לעוזר AI
+            </Link>
+          </div>
+        </section>
+      ) : null}
 
       <div className="wa-onboard-guide">
         <h2>מדריך קצר לפני שמתחילים</h2>
@@ -196,32 +221,35 @@ export function ShopWhatsappOnboardingPage() {
       {err ? <div className="wa-onboard-alert wa-onboard-alert--danger">{err}</div> : null}
       {statusMsg ? <div className="wa-onboard-alert wa-onboard-alert--info">{statusMsg}</div> : null}
 
-      <section className={`wa-step ${activeKey === "save_config" ? "is-active" : ""}`}>
+      <section className={`wa-step wa-step--quest ${activeKey === "save_config" ? "is-active" : ""}`}>
         <header>
           <span className="wa-step__badge">{steps.find((s) => s.key === "save_config")?.done ? "✓" : "1"}</span>
           <div>
             <h3>שלב 1: שמירת פרטי החיבור</h3>
             <p>הדבק את הפרטים מהשלב המקדמי למעלה ולחץ "שמור והמשך".</p>
           </div>
+          <span className="wa-step__state">{steps.find((s) => s.key === "save_config")?.done ? "הושלם" : "פעיל"}</span>
         </header>
         <form onSubmit={saveConfig} className="wa-step__body">
           <input className="input" placeholder="Phone Number ID" value={phoneNumberId} onChange={(e) => setPhoneNumberId(e.target.value)} disabled={loading} />
           <input className="input" placeholder="Business Account ID (אופציונלי)" value={businessId} onChange={(e) => setBusinessId(e.target.value)} disabled={loading} />
           <input className="input" placeholder="Verify Token" value={verifyToken} onChange={(e) => setVerifyToken(e.target.value)} disabled={loading} />
           <input className="input" placeholder="Access Token" value={accessToken} onChange={(e) => setAccessToken(e.target.value)} disabled={loading} />
+          <div className="text-muted">אם אתה כבר מחובר ורוצה לערוך - הזן Access Token חדש ורק אז שמור.</div>
           <button className="btn" type="submit" disabled={loading || !phoneNumberId.trim() || !verifyToken.trim() || !accessToken.trim()}>
             שמור והמשך
           </button>
         </form>
       </section>
 
-      <section className={`wa-step ${activeKey === "verify_credentials" ? "is-active" : ""}`}>
+      <section className={`wa-step wa-step--quest ${activeKey === "verify_credentials" ? "is-active" : ""}`}>
         <header>
           <span className="wa-step__badge">{steps.find((s) => s.key === "verify_credentials")?.done ? "✓" : "2"}</span>
           <div>
             <h3>שלב 2: אימות מול Meta</h3>
             <p>בדיקת תקינות אוטומטית לקרדנצ'לים.</p>
           </div>
+          <span className="wa-step__state">{steps.find((s) => s.key === "verify_credentials")?.done ? "הושלם" : "ממתין"}</span>
         </header>
         <div className="wa-step__body">
           <button className="btn" onClick={validateMeta} disabled={loading}>
@@ -230,13 +258,14 @@ export function ShopWhatsappOnboardingPage() {
         </div>
       </section>
 
-      <section className={`wa-step ${activeKey === "set_webhook" ? "is-active" : ""}`}>
+      <section className={`wa-step wa-step--quest ${activeKey === "set_webhook" ? "is-active" : ""}`}>
         <header>
           <span className="wa-step__badge">{steps.find((s) => s.key === "set_webhook")?.done ? "✓" : "3"}</span>
           <div>
             <h3>שלב 3: הגדרת Webhook ב-Meta</h3>
             <p>העתק בלחיצה והדבק במסך ה-Webhook של האפליקציה.</p>
           </div>
+          <span className="wa-step__state">{steps.find((s) => s.key === "set_webhook")?.done ? "הושלם" : "ממתין"}</span>
         </header>
         <div className="wa-step__body">
           <div className="wa-copy-row">
@@ -254,13 +283,14 @@ export function ShopWhatsappOnboardingPage() {
         </div>
       </section>
 
-      <section className={`wa-step ${activeKey === "enable_bot" ? "is-active" : ""}`}>
+      <section className={`wa-step wa-step--quest ${activeKey === "enable_bot" ? "is-active" : ""}`}>
         <header>
           <span className="wa-step__badge">{steps.find((s) => s.key === "enable_bot")?.done ? "✓" : "4"}</span>
           <div>
             <h3>שלב 4: טסט והפעלה</h3>
             <p>שלח הודעת בדיקה ואז הפעל את החיבור.</p>
           </div>
+          <span className="wa-step__state">{steps.find((s) => s.key === "enable_bot")?.done ? "הושלם" : "ממתין"}</span>
         </header>
         <div className="wa-step__body">
           <input
