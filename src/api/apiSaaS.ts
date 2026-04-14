@@ -476,8 +476,10 @@ export type WhatsappConfigOut = {
   business_account_id: string | null;
   verify_token: string | null;
   access_token_masked: string | null;
+  alert_phone_e164: string | null;
   webhook_url: string | null;
   webhook_verify_url: string | null;
+  sales_webhook_url: string | null;
   updated_at: string | null;
 };
 
@@ -487,6 +489,7 @@ export type WhatsappConfigIn = {
   business_account_id?: string | null;
   verify_token: string;
   access_token: string;
+  alert_phone_e164?: string | null;
 };
 
 export type WhatsappGuideOut = {
@@ -526,6 +529,7 @@ export type WhatsappWizardOut = {
   current_step_key: string;
   steps: WhatsappWizardStepOut[];
   webhook_url: string | null;
+  sales_webhook_url: string | null;
   verify_token: string | null;
   blocking_issues: string[];
 };
@@ -697,6 +701,9 @@ export type NotificationPreferences = {
   notify_price_change: boolean;
   notify_auto_pricing: boolean;
   notify_sanity: boolean;
+  notify_sale_live: boolean;
+  notify_sales_daily: boolean;
+  notify_sales_monthly: boolean;
 };
 
 export async function apiGetNotificationPreferences(

@@ -26,6 +26,7 @@ export function ShopWhatsappOnboardingPage() {
   const [businessId, setBusinessId] = useState("");
   const [verifyToken, setVerifyToken] = useState("");
   const [accessToken, setAccessToken] = useState("");
+  const [alertPhone, setAlertPhone] = useState("");
   const [testPhone, setTestPhone] = useState("");
   const [testText, setTestText] = useState("בדיקת חיבור מהמערכת - הצלחה");
   const [editMode, setEditMode] = useState(false);
@@ -45,6 +46,7 @@ export function ShopWhatsappOnboardingPage() {
     setPhoneNumberId(cfg.phone_number_id ?? "");
     setBusinessId(cfg.business_account_id ?? "");
     setVerifyToken(cfg.verify_token ?? "");
+    setAlertPhone(cfg.alert_phone_e164 ?? "");
   }
 
   useEffect(() => {
@@ -64,6 +66,7 @@ export function ShopWhatsappOnboardingPage() {
         business_account_id: businessId || null,
         verify_token: verifyToken,
         access_token: accessToken,
+        alert_phone_e164: alertPhone || null,
       });
       setStatusMsg("שמירה בוצעה. ממשיכים לשלב הבא.");
       await load();
@@ -85,6 +88,7 @@ export function ShopWhatsappOnboardingPage() {
         business_account_id: businessId || null,
         verify_token: verifyToken,
         access_token: accessToken,
+        alert_phone_e164: alertPhone || null,
       });
       setStatusMsg(enabled ? "החיבור הופעל בהצלחה." : "החיבור נשמר ככבוי.");
       await load();
@@ -235,6 +239,13 @@ export function ShopWhatsappOnboardingPage() {
           <input className="input" placeholder="Business Account ID (אופציונלי)" value={businessId} onChange={(e) => setBusinessId(e.target.value)} disabled={loading} />
           <input className="input" placeholder="Verify Token" value={verifyToken} onChange={(e) => setVerifyToken(e.target.value)} disabled={loading} />
           <input className="input" placeholder="Access Token" value={accessToken} onChange={(e) => setAccessToken(e.target.value)} disabled={loading} />
+          <input
+            className="input"
+            placeholder="מספר יעד להתראות מכירה (+972...)"
+            value={alertPhone}
+            onChange={(e) => setAlertPhone(e.target.value)}
+            disabled={loading}
+          />
           <div className="text-muted">אם אתה כבר מחובר ורוצה לערוך - הזן Access Token חדש ורק אז שמור.</div>
           <button className="btn" type="submit" disabled={loading || !phoneNumberId.trim() || !verifyToken.trim() || !accessToken.trim()}>
             שמור והמשך
@@ -278,6 +289,16 @@ export function ShopWhatsappOnboardingPage() {
             <code>{wizard?.verify_token || "Verify Token לא זמין עדיין"}</code>
             <button className="btn secondary" onClick={() => copyValue(wizard?.verify_token)} disabled={loading || !wizard?.verify_token}>
               העתק Token
+            </button>
+          </div>
+          <div className="wa-copy-row">
+            <code>{wizard?.sales_webhook_url || "Sales Webhook URL לא זמין עדיין"}</code>
+            <button
+              className="btn secondary"
+              onClick={() => copyValue(wizard?.sales_webhook_url)}
+              disabled={loading || !wizard?.sales_webhook_url}
+            >
+              העתק Sales Webhook URL
             </button>
           </div>
         </div>

@@ -263,6 +263,39 @@ export function ShopSettingsPage() {
                 <small className="text-muted">כשסריקה נדחית בגלל סף אמינות</small>
               </span>
             </label>
+            <label className="settings-notif-row">
+              <input
+                type="checkbox"
+                checked={notif.notify_sale_live}
+                onChange={(e) => void saveNotif({ notify_sale_live: e.target.checked })}
+              />
+              <span>
+                <strong>התראת מכירה בלייב ל-WhatsApp</strong>
+                <small className="text-muted">מיד כשמגיעה רכישה מ-Woo webhook</small>
+              </span>
+            </label>
+            <label className="settings-notif-row">
+              <input
+                type="checkbox"
+                checked={notif.notify_sales_daily}
+                onChange={(e) => void saveNotif({ notify_sales_daily: e.target.checked })}
+              />
+              <span>
+                <strong>דוח מכירות יומי</strong>
+                <small className="text-muted">סיכום מכירות והכנסות להיום ב-WhatsApp</small>
+              </span>
+            </label>
+            <label className="settings-notif-row">
+              <input
+                type="checkbox"
+                checked={notif.notify_sales_monthly}
+                onChange={(e) => void saveNotif({ notify_sales_monthly: e.target.checked })}
+              />
+              <span>
+                <strong>דוח מכירות חודשי</strong>
+                <small className="text-muted">סיכום מכירות והכנסות לחודש הנוכחי ב-WhatsApp</small>
+              </span>
+            </label>
           </div>
         )}
       </div>
