@@ -21,6 +21,7 @@ export function AdminShell() {
           <div className="sidebar-nav-section">ניהול</div>
           <NavLink to="/admin/domains">בדיקת דומיינים</NavLink>
           <NavLink to="/admin/users">ניהול משתמשים</NavLink>
+          <NavLink to="/admin/packages">חבילות SaaS</NavLink>
           <NavLink to="/admin/tool">כלי מחיר</NavLink>
           <NavLink to="/admin/price-sanity">סף אמינות</NavLink>
         </nav>
@@ -40,6 +41,7 @@ export function AdminShell() {
           <NavLink to="/admin/system">שרת</NavLink>
           <NavLink to="/admin/domains">דומיינים</NavLink>
           <NavLink to="/admin/users">משתמשים</NavLink>
+          <NavLink to="/admin/packages">חבילות</NavLink>
           <NavLink to="/admin/tool">כלי מחיר</NavLink>
           <NavLink to="/admin/price-sanity">סף</NavLink>
         </nav>

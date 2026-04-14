@@ -23,6 +23,7 @@ import { AdminOperationsLogPage } from "./pages/AdminOperationsLogPage";
 import { AdminSystemConfigPage } from "./pages/AdminSystemConfigPage";
 import { ShopAiChatPage } from "./pages/ShopAiChatPage";
 import { ShopWhatsappOnboardingPage } from "./pages/ShopWhatsappOnboardingPage";
+import { AdminPackagesPage } from "./pages/AdminPackagesPage";
 
 function Protected({ children }: { children: React.ReactNode }) {
   const { token, loading } = useAuth();
@@ -75,6 +76,7 @@ export default function App() {
         <Route path="system" element={<AdminSystemConfigPage />} />
         <Route path="domains" element={<AdminDomainsPage />} />
         <Route path="users" element={<AdminUsersPage />} />
+        <Route path="packages" element={<AdminPackagesPage />} />
         <Route path="tool" element={<PriceToolPage />} />
         <Route path="price-sanity" element={<AdminSanityPage />} />
       </Route>

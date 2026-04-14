@@ -1303,6 +1303,17 @@ export type AdminSystemConfig = {
   updated_at: string;
 };
 
+export type AdminShopPackageRow = {
+  shop_id: number;
+  shop_name: string;
+  owner_email: string | null;
+  package_tier: "free" | "basic" | "premium" | string;
+  package_max_scan_runs_per_day: number;
+  package_max_scans_per_day_window: number;
+  package_min_interval_minutes: number;
+  today_runs_used: number;
+};
+
 export async function apiAdminOperationsLog(
   token: string,
   opts?: { limit?: number; offset?: number; level?: string | null; code_prefix?: string | null },
@@ -1318,6 +1329,22 @@ export async function apiAdminOperationsLog(
 
 export async function apiAdminGetSystemConfig(token: string): Promise<AdminSystemConfig> {
   return request("/api/admin/system/config", { token, method: "GET" });
+}
+
+export async function apiAdminShopPackages(token: string): Promise<AdminShopPackageRow[]> {
+  return request("/api/admin/shops/packages", { token, method: "GET" });
+}
+
+export async function apiAdminPatchShopPackage(
+  token: string,
+  shopId: number,
+  packageTier: "free" | "basic" | "premium",
+): Promise<AdminShopPackageRow> {
+  return request(`/api/admin/shops/${shopId}/package`, {
+    token,
+    method: "PATCH",
+    body: JSON.stringify({ package_tier: packageTier }),
+  });
 }
 
 export async function apiAdminPatchSystemConfig(
