@@ -14,12 +14,14 @@ import {
   apiOwnershipTransferCreate,
   apiOwnershipTransferOutgoing,
   apiPatchNotificationPreferences,
+  apiShopifyConfig,
   apiUpdateShop,
   apiWooConfig,
   type ApiKeyOut,
   type MemberOut,
   type NotificationPreferences,
   type OwnershipTransferRow,
+  type ShopOut,
 } from "../api/apiSaaS";
 import { useAuth } from "../auth/AuthContext";
 
@@ -46,6 +48,11 @@ export function ShopSettingsPage() {
   const [transfers, setTransfers] = useState<OwnershipTransferRow[]>([]);
   const [err, setErr] = useState<string | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
+  const [shopOut, setShopOut] = useState<ShopOut | null>(null);
+  const [shDomain, setShDomain] = useState("");
+  const [shToken, setShToken] = useState("");
+  const [shClientSecret, setShClientSecret] = useState("");
+  const [shApiVer, setShApiVer] = useState("");
 
   const owner = members.find((m) => m.role === "owner");
   const isOwner = !!owner && owner.user_id === user?.id;
@@ -56,6 +63,7 @@ export function ShopSettingsPage() {
     void (async () => {
       try {
         const shop = await apiGetShop(token, sid);
+        setShopOut(shop);
         setMinutes(shop.check_interval_minutes);
         setWooCurrency(shop.woo_currency ?? null);
         setMembers(await apiMembers(token, sid));
@@ -89,6 +97,46 @@ export function ShopSettingsPage() {
       setMsg("מרווח הסריקה עודכן (בדקות)");
     } catch (ex) {
       setErr(ex instanceof Error ? ex.message : "שגיאה");
+    }
+  }
+
+  async function saveShopify(e: FormEvent) {
+    e.preventDefault();
+    if (!token) return;
+    setErr(null);
+    try {
+      const r = await apiShopifyConfig(token, sid, {
+        shop_domain: shDomain.trim(),
+        admin_access_token: shToken.trim(),
+        api_version: shApiVer.trim() || null,
+        client_secret: shClientSecret.trim() || null,
+      });
+      setWooCurrency(r.woo_currency ?? null);
+      setShopOut(await apiGetShop(token, sid));
+      setMsg(
+        r.shopify_orders_webhook_path
+          ? `Shopify נשמר. Webhook הזמנות: POST ${r.shopify_orders_webhook_path} (HMAC עם Client secret).`
+          : "Shopify נשמר",
+      );
+    } catch (ex) {
+      setErr(ex instanceof Error ? ex.message : "שגיאה");
+    }
+  }
+
+  async function downloadConnectPlugin() {
+    if (!token) return;
+    setErr(null);
+    try {
+      const blob = await apiDownloadWpPluginZip(token, sid, { apiBase: null });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `price-resolver-connect-shop-${sid}.zip`;
+      a.click();
+      URL.revokeObjectURL(url);
+      setMsg("התוסף הורד.");
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "שגיאה");
     }
   }
 
@@ -161,6 +209,8 @@ export function ShopSettingsPage() {
       setTransferBusy(false);
     }
   }
+
+  const storePlatform = shopOut?.store_platform === "shopify" ? "shopify" : "wordpress";
 
   return (
     <>
@@ -249,7 +299,7 @@ export function ShopSettingsPage() {
               />
               <span>
                 <strong>תמחור אוטומטי</strong>
-                <small className="text-muted">עדכוני מחיר ב־WooCommerce לפי כללי התמחור</small>
+                <small className="text-muted">עדכוני מחיר בקטלוג (Woo/Shopify) לפי כללי התמחור</small>
               </span>
             </label>
             <label className="settings-notif-row">
@@ -271,7 +321,7 @@ export function ShopSettingsPage() {
               />
               <span>
                 <strong>התראת מכירה בלייב ל-WhatsApp</strong>
-                <small className="text-muted">מיד כשמגיעה רכישה מ-Woo webhook</small>
+                <small className="text-muted">מיד כשמגיעה רכישה (Woo webhook או Shopify orders webhook)</small>
               </span>
             </label>
             <label className="settings-notif-row">
@@ -300,51 +350,116 @@ export function ShopSettingsPage() {
         )}
       </div>
 
-      <div className="card mt-2">
-        <h2 style={{ marginTop: 0 }}>WooCommerce REST</h2>
-        <p className="text-muted" style={{ marginTop: 0, fontSize: "0.92rem" }}>
-          מטבע התצוגה נשלף אוטומטית מהחנות ב־WooCommerce לאחר שמירת המפתחות או סנכרון מוצרים.
-          {wooCurrency && (
-            <>
-              {" "}
-              <strong>מטבע נוכחי: {wooCurrency}</strong>
-            </>
-          )}
-        </p>
-        <form onSubmit={saveWoo}>
-          <div className="field">
-            <label>כתובת אתר (כולל https)</label>
-            <input value={site} onChange={(e) => setSite(e.target.value)} required />
-          </div>
-          <div className="field">
-            <label>Consumer key</label>
-            <input value={ck} onChange={(e) => setCk(e.target.value)} required />
-          </div>
-          <div className="field">
-            <label>Consumer secret</label>
-            <input value={cs} onChange={(e) => setCs(e.target.value)} required type="password" />
-          </div>
-          <button className="btn" type="submit">
-            שמור והתחבר
-          </button>
-        </form>
-      </div>
-
-      <div className="card mt-2">
-        <h2 style={{ marginTop: 0 }}>תוסף WordPress (חיבור אוטומטי)</h2>
-        <p className="text-muted" style={{ marginTop: 0, fontSize: "0.92rem" }}>
-          מומלץ להשתמש באשף ההקמה — הוא יוצר טוקן, מוריד תוסף עם ההגדרות, ומנחה לחיבור בלי להזין
-          מפתחות ידנית.
-        </p>
-        <div className="flex-row" style={{ gap: "0.75rem", flexWrap: "wrap", alignItems: "center" }}>
-          <Link className="btn" to={`/app/${sid}/setup`}>
-            אשף הקמת חנות
-          </Link>
-          <button type="button" className="btn secondary" onClick={() => void downloadConnectPlugin()}>
-            הורדת תוסף (ZIP)
-          </button>
+      {storePlatform === "wordpress" && (
+        <div className="card mt-2">
+          <h2 style={{ marginTop: 0 }}>WooCommerce REST</h2>
+          <p className="text-muted" style={{ marginTop: 0, fontSize: "0.92rem" }}>
+            מטבע התצוגה נשלף אוטומטית מהחנות ב־WooCommerce לאחר שמירת המפתחות או סנכרון מוצרים.
+            {wooCurrency && (
+              <>
+                {" "}
+                <strong>מטבע נוכחי: {wooCurrency}</strong>
+              </>
+            )}
+          </p>
+          <form onSubmit={saveWoo}>
+            <div className="field">
+              <label>כתובת אתר (כולל https)</label>
+              <input value={site} onChange={(e) => setSite(e.target.value)} required />
+            </div>
+            <div className="field">
+              <label>Consumer key</label>
+              <input value={ck} onChange={(e) => setCk(e.target.value)} required />
+            </div>
+            <div className="field">
+              <label>Consumer secret</label>
+              <input value={cs} onChange={(e) => setCs(e.target.value)} required type="password" />
+            </div>
+            <button className="btn" type="submit">
+              שמור והתחבר
+            </button>
+          </form>
         </div>
-      </div>
+      )}
+
+      {storePlatform === "shopify" && (
+        <div className="card mt-2">
+          <h2 style={{ marginTop: 0 }}>Shopify (Custom App)</h2>
+          <p className="text-muted" style={{ marginTop: 0, fontSize: "0.92rem" }}>
+            דומיין myshopify.com וטוקן Admin API. Client secret של האפליקציה נדרש לאימות webhook הזמנות
+            (X-Shopify-Hmac-Sha256).
+            {wooCurrency && (
+              <>
+                {" "}
+                <strong>מטבע נוכחי: {wooCurrency}</strong>
+              </>
+            )}
+          </p>
+          <form onSubmit={(e) => void saveShopify(e)}>
+            <div className="field">
+              <label>דומיין חנות</label>
+              <input
+                className="input"
+                placeholder="my-store.myshopify.com"
+                value={shDomain}
+                onChange={(e) => setShDomain(e.target.value)}
+                required
+              />
+            </div>
+            <div className="field">
+              <label>Admin API access token</label>
+              <input
+                className="input"
+                type="password"
+                value={shToken}
+                onChange={(e) => setShToken(e.target.value)}
+                required
+              />
+            </div>
+            <div className="field">
+              <label>גרסת API (אופציונלי)</label>
+              <input className="input" placeholder="2024-10" value={shApiVer} onChange={(e) => setShApiVer(e.target.value)} />
+            </div>
+            <div className="field">
+              <label>Client secret (לאימות webhook)</label>
+              <input
+                className="input"
+                type="password"
+                value={shClientSecret}
+                onChange={(e) => setShClientSecret(e.target.value)}
+              />
+            </div>
+            <button className="btn" type="submit">
+              שמור ובדוק חיבור
+            </button>
+          </form>
+          <p className="text-muted mt-2" style={{ fontSize: "0.88rem" }}>
+            רשמו ב-Shopify Admin → הגדרות → התראות → Webhooks: כתובת{" "}
+            <code>
+              {"{API}"}/api/shops/{sid}/shopify/webhooks/orders
+            </code>{" "}
+            לאירועי Order creation (פורמט JSON).
+          </p>
+        </div>
+      )}
+
+      {storePlatform === "wordpress" && (
+        <div className="card mt-2">
+          <h2 style={{ marginTop: 0 }}>תוסף WordPress (חיבור אוטומטי)</h2>
+          <p className="text-muted" style={{ marginTop: 0, fontSize: "0.92rem" }}>
+            מומלץ להשתמש באשף ההקמה — הוא יוצר טוקן, מוריד תוסף עם ההגדרות, ומנחה לחיבור בלי להזין
+            מפתחות ידנית.
+          </p>
+          <div className="flex-row" style={{ gap: "0.75rem", flexWrap: "wrap", alignItems: "center" }}>
+            <Link className="btn" to={`/app/${sid}/setup`}>
+              אשף הקמת חנות
+            </Link>
+            <button type="button" className="btn secondary" onClick={() => void downloadConnectPlugin()}>
+              הורדת תוסף (ZIP)
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className="card mt-2">
         <h2 style={{ marginTop: 0 }}>חברי צוות</h2>

@@ -83,9 +83,11 @@ export async function apiChangePassword(
 export type ShopOut = {
   id: number;
   name: string;
+  store_platform?: "wordpress" | "shopify";
   check_interval_hours: number;
   check_interval_minutes: number;
   woocommerce_configured: boolean;
+  shopify_configured?: boolean;
   woo_currency: string | null;
 };
 
@@ -93,7 +95,10 @@ export async function apiListShops(token: string): Promise<ShopOut[]> {
   return request("/api/shops", { token, method: "GET" });
 }
 
-export async function apiCreateShop(token: string, body: { name: string }): Promise<ShopOut> {
+export async function apiCreateShop(
+  token: string,
+  body: { name: string; store_platform?: "wordpress" | "shopify" },
+): Promise<ShopOut> {
   return request("/api/shops", { token, method: "POST", body: JSON.stringify(body) });
 }
 
@@ -886,6 +891,28 @@ export async function apiWooConfig(
   body: { site_url: string; consumer_key: string; consumer_secret: string },
 ): Promise<{ ok: boolean; woo_currency: string | null }> {
   return request(`/api/shops/${shopId}/woocommerce`, {
+    token,
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export async function apiShopifyConfig(
+  token: string,
+  shopId: number,
+  body: {
+    shop_domain: string;
+    admin_access_token: string;
+    api_version?: string | null;
+    client_secret?: string | null;
+  },
+): Promise<{
+  ok: boolean;
+  woo_currency: string | null;
+  shopify_webhook_secret?: string | null;
+  shopify_orders_webhook_path?: string | null;
+}> {
+  return request(`/api/shops/${shopId}/shopify`, {
     token,
     method: "POST",
     body: JSON.stringify(body),

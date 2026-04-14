@@ -18,6 +18,7 @@ export function ShopListPage() {
   const [incomingTransfers, setIncomingTransfers] = useState<OwnershipTransferRow[]>([]);
   const [transferBusyId, setTransferBusyId] = useState<number | null>(null);
   const [name, setName] = useState("");
+  const [storePlatform, setStorePlatform] = useState<"wordpress" | "shopify">("wordpress");
   const [err, setErr] = useState<string | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
 
@@ -40,7 +41,7 @@ export function ShopListPage() {
     if (!token) return;
     setErr(null);
     try {
-      await apiCreateShop(token, { name });
+      await apiCreateShop(token, { name, store_platform: storePlatform });
       setName("");
       await load();
     } catch (ex) {
@@ -137,7 +138,7 @@ export function ShopListPage() {
       )}
 
       <div className="card">
-        <form onSubmit={onCreate} className="flex-row" style={{ gap: "0.75rem" }}>
+        <form onSubmit={onCreate} className="flex-row" style={{ gap: "0.75rem", flexWrap: "wrap" }}>
           <input
             className="input"
             placeholder="שם חנות חדשה"
@@ -146,6 +147,16 @@ export function ShopListPage() {
             required
             style={{ flex: 1, minWidth: 200 }}
           />
+          <select
+            className="input"
+            style={{ minWidth: 160 }}
+            value={storePlatform}
+            onChange={(e) => setStorePlatform(e.target.value as "wordpress" | "shopify")}
+            aria-label="פלטפורמת חנות"
+          >
+            <option value="wordpress">WordPress / WooCommerce</option>
+            <option value="shopify">Shopify</option>
+          </select>
           <button className="btn" type="submit">
             צור חנות
           </button>
@@ -158,8 +169,9 @@ export function ShopListPage() {
             <thead>
               <tr>
                 <th>שם</th>
+                <th>פלטפורמה</th>
                 <th>מרווח סריקה</th>
-                <th>WooCommerce</th>
+                <th>חיבור קטלוג</th>
                 <th />
               </tr>
             </thead>
@@ -169,12 +181,19 @@ export function ShopListPage() {
                   <td>
                     <strong>{s.name}</strong>
                   </td>
+                  <td>{s.store_platform === "shopify" ? "Shopify" : "WordPress"}</td>
                   <td>{s.check_interval_minutes} דק׳</td>
                   <td>
-                    {s.woocommerce_configured ? (
-                      <span className="badge success">מחובר</span>
+                    {s.store_platform === "shopify" ? (
+                      s.shopify_configured ? (
+                        <span className="badge success">Shopify מחובר</span>
+                      ) : (
+                        <span className="badge neutral">Shopify לא מחובר</span>
+                      )
+                    ) : s.woocommerce_configured ? (
+                      <span className="badge success">Woo מחובר</span>
                     ) : (
-                      <span className="badge neutral">לא מחובר</span>
+                      <span className="badge neutral">Woo לא מחובר</span>
                     )}
                   </td>
                   <td className="flex-row" style={{ gap: "0.35rem", flexWrap: "wrap" }}>
