@@ -32,6 +32,7 @@ export function ShopWhatsappOnboardingPage() {
   const [editMode, setEditMode] = useState(false);
   const [focusedStep, setFocusedStep] = useState<"save_config" | "verify_credentials" | "set_webhook" | "enable_bot">("save_config");
   const [stepFx, setStepFx] = useState<string | null>(null);
+  const [questPulse, setQuestPulse] = useState(false);
 
   const steps = useMemo(() => wizard?.steps ?? [], [wizard]);
   const doneCount = steps.filter((s) => s.done).length;
@@ -39,6 +40,14 @@ export function ShopWhatsappOnboardingPage() {
   const progress = Math.round((doneCount / totalCount) * 100);
   const activeKey = wizard?.current_step_key ?? "save_config";
   const isConnected = Boolean(wizard?.completed && enabled);
+  const xp = doneCount * 250;
+  const rank = doneCount >= 4 ? "WhatsApp Master" : doneCount >= 3 ? "Pro Integrator" : doneCount >= 2 ? "Advanced Builder" : "Rookie Connector";
+  const stepMeta: Record<"save_config" | "verify_credentials" | "set_webhook" | "enable_bot", { title: string; subtitle: string; icon: string }> = {
+    save_config: { title: "משימת בסיס", subtitle: "הזנת פרטי מערכת", icon: "01" },
+    verify_credentials: { title: "משימת אבטחה", subtitle: "אימות מול Meta", icon: "02" },
+    set_webhook: { title: "משימת סנכרון", subtitle: "חיבור Webhook", icon: "03" },
+    enable_bot: { title: "משימת השקה", subtitle: "בדיקה והפעלה", icon: "04" },
+  };
 
   useEffect(() => {
     if (!wizard?.completed && activeKey !== "done") {
@@ -48,8 +57,10 @@ export function ShopWhatsappOnboardingPage() {
 
   async function playStepCheck(label: string) {
     setStepFx(label);
+    setQuestPulse(true);
     await new Promise((resolve) => setTimeout(resolve, 850));
     setStepFx(null);
+    setQuestPulse(false);
   }
 
   async function load() {
@@ -163,12 +174,14 @@ export function ShopWhatsappOnboardingPage() {
 
   return (
     <div className="wa-onboard">
-      <div className="wa-onboard-hero">
+      <div className={`wa-onboard-hero wa-onboard-hero--epic ${questPulse ? "is-pulsing" : ""}`}>
         <div>
           <h1>חיבור WhatsApp לחנות</h1>
-          <p>
-            אשף אינטראקטיבי בסגנון משימות: כל שלב ברור, עם בדיקה מיידית והכוונה עד חיבור מלא.
-          </p>
+          <p>מסלול קווסט אינטראקטיבי: כל שלב נותן XP, בדיקה חיה ומעבר ברור לשלב הבא.</p>
+          <div className="wa-hero-rank">
+            <span className="wa-hero-rank__badge">{rank}</span>
+            <span className="wa-hero-rank__xp">{xp} XP</span>
+          </div>
         </div>
         <div className="wa-onboard-progress">
           <div className="wa-onboard-progress__label">התקדמות</div>
@@ -188,19 +201,34 @@ export function ShopWhatsappOnboardingPage() {
           { key: "verify_credentials", label: "2. אימות" },
           { key: "set_webhook", label: "3. Webhook" },
           { key: "enable_bot", label: "4. הפעלה" },
-        ].map((s) => (
+        ].map((s, idx) => {
+          const done = steps.find((x) => x.key === s.key)?.done;
+          const locked = idx > doneCount && !done;
+          return (
           <button
             key={s.key}
             type="button"
-            className={`wa-step-nav__item ${focusedStep === s.key ? "is-active" : ""}`}
+            className={`wa-step-nav__item ${focusedStep === s.key ? "is-active" : ""} ${done ? "is-done" : ""}`}
             onClick={() => setFocusedStep(s.key as "save_config" | "verify_credentials" | "set_webhook" | "enable_bot")}
+            disabled={locked}
           >
-            {s.label}
+            {done ? "✓" : locked ? "🔒" : "▶"} {s.label}
           </button>
-        ))}
+        )})}
       </div>
 
       {stepFx ? <div className="wa-step-fx">{stepFx}</div> : null}
+
+      <section className="wa-quest-status">
+        <div className="wa-quest-status__left">
+          <h3>{stepMeta[focusedStep].title}</h3>
+          <p>{stepMeta[focusedStep].subtitle}</p>
+        </div>
+        <div className="wa-quest-status__right">
+          <span className="wa-quest-status__id">{stepMeta[focusedStep].icon}</span>
+          <span className="wa-quest-status__txt">Mission Active</span>
+        </div>
+      </section>
 
       {isConnected && !editMode ? (
         <section className="wa-connected-banner">
@@ -264,7 +292,7 @@ export function ShopWhatsappOnboardingPage() {
       {err ? <div className="wa-onboard-alert wa-onboard-alert--danger">{err}</div> : null}
       {statusMsg ? <div className="wa-onboard-alert wa-onboard-alert--info">{statusMsg}</div> : null}
 
-      <section className={`wa-step wa-step--quest ${activeKey === "save_config" ? "is-active" : ""} ${focusedStep !== "save_config" ? "is-hidden" : ""}`}>
+      <section className={`wa-step wa-step--quest wa-step--epic ${activeKey === "save_config" ? "is-active" : ""} ${focusedStep !== "save_config" ? "is-hidden" : ""}`}>
         <header>
           <span className="wa-step__badge">{steps.find((s) => s.key === "save_config")?.done ? "✓" : "1"}</span>
           <div>
@@ -292,7 +320,7 @@ export function ShopWhatsappOnboardingPage() {
         </form>
       </section>
 
-      <section className={`wa-step wa-step--quest ${activeKey === "verify_credentials" ? "is-active" : ""} ${focusedStep !== "verify_credentials" ? "is-hidden" : ""}`}>
+      <section className={`wa-step wa-step--quest wa-step--epic ${activeKey === "verify_credentials" ? "is-active" : ""} ${focusedStep !== "verify_credentials" ? "is-hidden" : ""}`}>
         <header>
           <span className="wa-step__badge">{steps.find((s) => s.key === "verify_credentials")?.done ? "✓" : "2"}</span>
           <div>
@@ -308,7 +336,7 @@ export function ShopWhatsappOnboardingPage() {
         </div>
       </section>
 
-      <section className={`wa-step wa-step--quest ${activeKey === "set_webhook" ? "is-active" : ""} ${focusedStep !== "set_webhook" ? "is-hidden" : ""}`}>
+      <section className={`wa-step wa-step--quest wa-step--epic ${activeKey === "set_webhook" ? "is-active" : ""} ${focusedStep !== "set_webhook" ? "is-hidden" : ""}`}>
         <header>
           <span className="wa-step__badge">{steps.find((s) => s.key === "set_webhook")?.done ? "✓" : "3"}</span>
           <div>
@@ -343,7 +371,7 @@ export function ShopWhatsappOnboardingPage() {
         </div>
       </section>
 
-      <section className={`wa-step wa-step--quest ${activeKey === "enable_bot" ? "is-active" : ""} ${focusedStep !== "enable_bot" ? "is-hidden" : ""}`}>
+      <section className={`wa-step wa-step--quest wa-step--epic ${activeKey === "enable_bot" ? "is-active" : ""} ${focusedStep !== "enable_bot" ? "is-hidden" : ""}`}>
         <header>
           <span className="wa-step__badge">{steps.find((s) => s.key === "enable_bot")?.done ? "✓" : "4"}</span>
           <div>
