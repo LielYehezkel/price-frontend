@@ -1311,7 +1311,24 @@ export type AdminShopPackageRow = {
   package_max_scan_runs_per_day: number;
   package_max_scans_per_day_window: number;
   package_min_interval_minutes: number;
+  package_usage_metric: string;
   today_runs_used: number;
+};
+
+export type AdminShopPackageAuditRow = {
+  id: number;
+  shop_id: number;
+  changed_by_user_id: number;
+  previous_tier: string;
+  new_tier: string;
+  previous_max_scan_runs_per_day: number;
+  new_max_scan_runs_per_day: number;
+  previous_max_scans_per_day_window: number;
+  new_max_scans_per_day_window: number;
+  previous_min_interval_minutes: number;
+  new_min_interval_minutes: number;
+  change_note: string | null;
+  created_at: string;
 };
 
 export async function apiAdminOperationsLog(
@@ -1339,11 +1356,23 @@ export async function apiAdminPatchShopPackage(
   token: string,
   shopId: number,
   packageTier: "free" | "basic" | "premium",
+  changeNote?: string,
 ): Promise<AdminShopPackageRow> {
   return request(`/api/admin/shops/${shopId}/package`, {
     token,
     method: "PATCH",
-    body: JSON.stringify({ package_tier: packageTier }),
+    body: JSON.stringify({ package_tier: packageTier, change_note: changeNote ?? null }),
+  });
+}
+
+export async function apiAdminShopPackageAudit(
+  token: string,
+  shopId: number,
+  limit: number = 100,
+): Promise<AdminShopPackageAuditRow[]> {
+  return request(`/api/admin/shops/${shopId}/package-audit?limit=${Math.max(1, Math.min(500, limit))}`, {
+    token,
+    method: "GET",
   });
 }
 
